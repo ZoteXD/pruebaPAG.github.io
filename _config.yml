@@ -1,4 +1,5 @@
 # Configuración básica del sitio
  title: 'Pagina prueba.'
- description: 'Pagina de prueba usnado Git y GitHub con base en Jekyll.'
+ description: 'Pagina de prueba usando Git y GitHub con base en Jekyll.'
  baseurl: "/pruebaPAG.github.io"
+ url: "https://zotexd.github.io"
