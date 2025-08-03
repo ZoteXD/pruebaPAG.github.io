@@ -1,70 +1,19 @@
+
 body { font-family: Arial, sans-serif; margin: 0 auto; max-width: 800px; background: #fff; color: #333; }
 header, footer { background: #f5f5f5; padding: 1em; }
 img { max-width: 100%; height: auto; }
 
-<header style="display: flex; justify-content: space-between; align-items: center; padding: 1em; background: #f5f5f5;">
-    <nav>
-        <ul style="list-style: none; display: flex; gap: 1em; margin: 0; padding: 0;">
-            <li><a href="/" style="text-decoration: none; color: #333;">Inicio</a></li>
-            <li><a href="/categories" style="text-decoration: none; color: #333;">Categorías</a></li>
-            <li><a href="/about" style="text-decoration: none; color: #333;">Acerca de mí</a></li>
-            <li><a href="/contact" style="text-decoration: none; color: #333;">Contacto</a></li>
-        </ul>
-    </nav>
+/* Switch moderno */
+.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #333; }
+input:checked + .slider:before { transform: translateX(26px); }
 
-    <!-- Interruptor de tema -->
-    <div>
-        <label class="switch">
-            <input type="checkbox" id="theme-toggle">
-            <span class="slider"></span>
-        </label>
-    </div>
-</header>
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-}
-
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0;
-  right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 24px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 18px; width: 18px;
-  left: 3px; bottom: 3px;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
-}
-
-input:checked + .slider {
-  background-color: #333;
-}
-
-input:checked + .slider:before {
-  transform: translateX(26px);
-}
-
-
+/* Modo oscuro */
 body.dark-mode {
-    background: #121212 url('/assets/img/fondo_pag.jpg') no-repeat center center fixed;
+    background: #121212 url('/assets/img/fondo.jpg') no-repeat center center fixed;
     background-size: cover;
     color: #f5f5f5;
 }
