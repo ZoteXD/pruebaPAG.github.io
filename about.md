@@ -1,3 +1,3 @@
-# Acerca de mí
-¡Hola! Esta es mi página de presentación.
-![Mi foto](/assets/img/avatar.jpg)
+# Acerca de
+Pagina About me con uso para presentacion.
+![Mi foto](/assets/img/avatar.png)

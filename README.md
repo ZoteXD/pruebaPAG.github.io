@@ -1,2 +1,3 @@
-# Manual completo
-Instrucciones detalladas para personalizar este blog.
+# Pagina de pruebas en Github Pages
+
+Simplemente estoy aprendiendo a usar esto.
