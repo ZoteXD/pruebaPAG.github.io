@@ -1,2 +1,2 @@
-# Bienvenido a mi Blog Moderno
-Aquí verás las entradas más recientes.
+# Pagina de prueba 
+Pagina de prueba para uso de links y acortadores (y otras funciones).
