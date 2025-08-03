@@ -1,2 +1,3 @@
-# Manual completo
-Instrucciones detalladas para personalizar este blog.
+# Página de pruebas.
+
+Esto es una pagina de prueba.
