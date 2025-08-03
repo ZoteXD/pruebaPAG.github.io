@@ -1,3 +1,4 @@
 # Configuración básica del sitio
  title: 'Pagina prueba.'
  description: 'Pagina de prueba usnado Git y GitHub con base en Jekyll.'
+ baseurl: "/pruebaPAG.github.io"
