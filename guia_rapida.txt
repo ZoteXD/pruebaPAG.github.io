@@ -1,0 +1,5 @@
+Guía rápida:
+1. Abrir GitHub Desktop.
+2. Reemplazar archivos.
+3. Commit y Push.
+4. Verificar en GitHub Pages.
