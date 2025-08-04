@@ -5,4 +5,5 @@ date: 2025-08-04
 categories: mixto
 ---
 Markdown + HTML juntos.
-![Ejemplo](/assets/img/post3.jpg)
+
+![Ejemplo]({{ site.baseurl }}/assets/img/post3.jpg)
