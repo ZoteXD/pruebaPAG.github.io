@@ -1,3 +1,3 @@
 # Acerca de
 Pagina About me con uso para presentacion.
-![Mi foto](/assets/img/Avatar.png)
+![logoScan](/assets/img/Avatar.png)
