@@ -3,3 +3,4 @@
  description: 'Pagina de prueba usando Git y GitHub con base en Jekyll.'
  baseurl: "/pruebaPAG.github.io"
  url: "https://zotexd.github.io"
+ markdown: kramdown
