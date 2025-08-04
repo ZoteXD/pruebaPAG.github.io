@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Segundo post'
+title: "Segundo post"
 date: 2025-08-04
 categories: pruebas
 ---

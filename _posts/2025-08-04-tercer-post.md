@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Tercer post'
+title: "Tercer post"
 date: 2025-08-04
 categories: mixto
 ---
