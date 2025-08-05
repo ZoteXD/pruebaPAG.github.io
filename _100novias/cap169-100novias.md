@@ -1,9 +1,11 @@
 ---
+layout: reader
 title: "100 Novias - Capítulo 169"
-layout: default
-permalink: /cap169-100novias/
+manga: "100 Novias"
+manga_slug: 100novias
+capitulo: 169
 images_json: /assets/mangas/100novias/cap169/images.json
-return_to: /100novias/   # URL del post origen
+return_to: /100novias/
 ---
 
 <h1>{{ page.title }}</h1>

@@ -1,10 +1,13 @@
 ---
+layout: reader
 title: "Saneka - Capítulo 2"
-layout: default
-permalink: /cap2-saneka/
+manga: "Saneka"
+manga_slug: saneka
+capitulo: 2
 images_json: /assets/mangas/saneka/cap2/images.json
-return_to: /saneka/  
+return_to: /saneka/
 ---
+
 
 <h1>{{ page.title }}</h1>
 <div id="reader"></div>

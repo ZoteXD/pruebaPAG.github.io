@@ -1,10 +1,13 @@
 ---
+layout: reader
 title: "Saneka - Capítulo 1"
-layout: default
-permalink: /cap1-saneka/
+manga: "Saneka"
+manga_slug: saneka
+capitulo: 1
 images_json: /assets/mangas/saneka/cap1/images.json
-return_to: /saneka/   # URL del post origen
+return_to: /saneka/
 ---
+
 
 <h1>{{ page.title }}</h1>
 <div id="reader"></div>
