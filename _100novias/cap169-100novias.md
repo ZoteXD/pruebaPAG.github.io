@@ -1,7 +1,10 @@
 ---
 layout: reader
-title: "Las 100 Novias - Capítulo 169"
-capitulo: 169
+title: "100novias - Capítulo 169"
+capitulo: 168
+es_ultimo: true
+manga_slug: 100novias
+permalink: /100novias/cap169/
 images_json: /assets/mangas/100novias/cap169/images.json
 return_to: /100novias/
 ---

@@ -1,7 +1,10 @@
 ---
 layout: reader
-title: "Las 100 Novias - Capítulo 168"
+title: "100novias - Capítulo 168"
 capitulo: 168
+es_ultimo: false
+manga_slug: 100novias
+permalink: /100novias/cap168/
 images_json: /assets/mangas/100novias/cap168/images.json
 return_to: /100novias/
 ---

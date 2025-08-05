@@ -2,6 +2,7 @@
 layout: reader
 title: "Ririsa - Capítulo 2"
 capitulo: 2
+es_ultimo: true
 manga_slug: ririsa
 permalink: /ririsa/cap2/
 images_json: /assets/mangas/ririsa/cap2/images.json

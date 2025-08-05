@@ -87,7 +87,9 @@
     {% else %}
       <span></span>
     {% endif %}
-    <a href="{{ site.baseurl }}/{{ page.manga_slug | default: '' }}/cap{{ page.capitulo | default:1 | plus:1 }}/">Siguiente →</a>
+    {% if page.es_ultimo != true %}
+      <a href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
+    {% endif %}
   </div>
 
   <!-- Botón de regresar -->
