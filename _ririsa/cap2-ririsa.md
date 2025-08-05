@@ -2,10 +2,11 @@
 layout: reader
 title: "Ririsa - Capítulo 2"
 capitulo: 2
+manga_slug: ririsa
+permalink: /ririsa/cap2/
 images_json: /assets/mangas/ririsa/cap2/images.json
 return_to: /ririsa/
 ---
-
 
 <h1>{{ page.title }}</h1>
 <div id="reader"></div>
