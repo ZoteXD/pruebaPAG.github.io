@@ -29,6 +29,28 @@
       margin: 0 auto 10px auto;
     }
 
+    /* Controles de navegación */
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .nav-buttons a {
+      padding: 10px 20px;
+      background: #333;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+      flex: 1;
+      margin: 0 10px;
+      text-align: center;
+    }
+    .nav-buttons a:hover {
+      background: #555;
+    }
+
     /* Botón de regresar */
     .back-button {
       display: block;
@@ -58,6 +80,17 @@
   <h1>{{ page.manga | default: page.title | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}</h1>
   <div id="reader"></div>
 
+  <!-- Botones de navegación -->
+  <div class="nav-buttons">
+    {% if page.capitulo and page.capitulo > 1 %}
+      <a href="{{ site.baseurl }}/{{ page.manga_slug | default: '' }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
+    {% else %}
+      <span></span>
+    {% endif %}
+    <a href="{{ site.baseurl }}/{{ page.manga_slug | default: '' }}/cap{{ page.capitulo | default:1 | plus:1 }}/">Siguiente →</a>
+  </div>
+
+  <!-- Botón de regresar -->
   <a class="back-button" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
 
   <script>
