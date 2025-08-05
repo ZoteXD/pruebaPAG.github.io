@@ -11,7 +11,10 @@
  collections:
   ririsa:
     output: true 
+    permalink: /ririsa/:title/
   saneka: #*
     output: true
+    permalink: /saneka/:title/
   100novias:
     output: true
+    permalink: /100novias/:title/
