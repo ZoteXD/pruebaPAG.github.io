@@ -1,5 +1,4 @@
 ---
----
 layout: post
 title: "Primer post"
 date: 2025-08-04

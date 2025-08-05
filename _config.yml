@@ -4,3 +4,14 @@
  baseurl: "/pruebaPAG.github.io"
  url: "https://zotexd.github.io"
  markdown: kramdown
+
+ #Dentro de collections van los nombres de las carpetas que contienen los posts.
+ #El output: true es para que se generen las páginas HTML de cada post.
+ #Los marcados con "#*" son para indicar que esta creada esa carpeta y evitar errores.
+ collections:
+  ririsa:
+    output: true 
+  saneka: #*
+    output: true
+  100novias:
+    output: true
