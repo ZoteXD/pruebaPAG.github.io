@@ -1,7 +1,7 @@
 ---
 layout: reader
 title: "100novias - Capítulo 169"
-capitulo: 168
+capitulo: 169
 es_ultimo: true
 manga_slug: 100novias
 permalink: /100novias/cap169/
