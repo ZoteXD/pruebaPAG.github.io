@@ -1,7 +1,7 @@
 ---
 title: "Saneka - Capítulo 2"
 layout: default
-permalink: /cap1-saneka/
+permalink: /cap2-saneka/
 images_json: /assets/mangas/saneka/cap2/images.json
 return_to: /saneka/  
 ---
