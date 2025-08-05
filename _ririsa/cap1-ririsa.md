@@ -14,25 +14,15 @@ fetch('{{ site.baseurl }}{{ page.images_json }}')
   .then(response => response.json())
   .then(images => {
     const reader = document.getElementById('reader');
-    images.forEach(img => {
-      const image = document.createElement('img');
-      image.src = '{{ site.baseurl }}' + img;
-      image.loading = 'lazy';
-      image.style.width = '100%';
-      image.style.marginBottom = '10px';
-      reader.appendChild(image);
-    });
-  })
-  .catch(err => {
-    document.getElementById('reader').innerHTML = "<p>No se pudieron cargar las imágenes.</p>";
-  });
-</script>
 
-<script>
-fetch('{{ site.baseurl }}{{ page.images_json }}')
-  .then(response => response.json())
-  .then(images => {
-    const reader = document.getElementById('reader');
+    // Ordenar numéricamente por el número en el nombre del archivo
+    images.sort((a, b) => {
+      const numA = parseInt(a.match(/(\d+)\.(jpg|png|webp)$/)[1]);
+      const numB = parseInt(b.match(/(\d+)\.(jpg|png|webp)$/)[1]);
+      return numA - numB;
+    });
+
+    // Agregar imágenes ya ordenadas
     images.forEach(img => {
       const image = document.createElement('img');
       image.src = '{{ site.baseurl }}' + img;
