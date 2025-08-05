@@ -9,6 +9,34 @@ return_to: /100novias/   # URL del post origen
 <h1>{{ page.title }}</h1>
 <div id="reader"></div>
 
+<style>
+  /* Estilo base: imágenes ocupan el 100% del contenedor */
+  #reader img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto 10px auto;
+  }
+
+  /* En pantallas grandes (mayores a 1024px) → imágenes fullscreen */
+  @media (min-width: 1024px) {
+    body, html {
+      margin: 0;
+      padding: 0;
+      background: #000; /* opcional: fondo negro tipo lector */
+    }
+    #reader {
+      max-width: 100vw;
+    }
+    #reader img {
+      width: 100vw;
+      max-width: 100vw;
+    }
+  }
+</style>
+
+
 <script>
 fetch('{{ site.baseurl }}{{ page.images_json }}')
   .then(response => response.json())
