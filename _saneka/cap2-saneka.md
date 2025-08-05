@@ -1,12 +1,11 @@
 ---
 layout: reader
 title: "Saneka - Capítulo 2"
-manga: "Saneka"
-manga_slug: saneka
 capitulo: 2
 images_json: /assets/mangas/saneka/cap2/images.json
 return_to: /saneka/
 ---
+
 
 
 <h1>{{ page.title }}</h1>

@@ -1,12 +1,11 @@
 ---
 layout: reader
 title: "Ririsa - Capítulo 1"
-manga: "Ririsa"
-manga_slug: ririsa
 capitulo: 1
 images_json: /assets/mangas/ririsa/cap1/images.json
 return_to: /ririsa/
 ---
+
 
 
 <h1>{{ page.title }}</h1>

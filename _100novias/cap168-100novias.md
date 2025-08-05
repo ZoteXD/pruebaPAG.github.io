@@ -1,12 +1,11 @@
 ---
 layout: reader
-title: "100 Novias - Capítulo 168"
-manga: "100 Novias"
-manga_slug: 100novias
+title: "Las 100 Novias - Capítulo 168"
 capitulo: 168
 images_json: /assets/mangas/100novias/cap168/images.json
 return_to: /100novias/
 ---
+
 
 <h1>{{ page.title }}</h1>
 <div id="reader"></div>
