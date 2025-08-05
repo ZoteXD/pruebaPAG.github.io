@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>{{ page.manga | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}</title>
+  <title>{{ page.title | default: "Capítulo" }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body, html {
@@ -29,28 +29,6 @@
       margin: 0 auto 10px auto;
     }
 
-    /* Botones de navegación */
-    .nav-buttons {
-      display: flex;
-      justify-content: space-between;
-      max-width: 800px;
-      margin: 30px auto;
-      padding: 0 20px;
-    }
-    .nav-buttons a {
-      padding: 10px 20px;
-      background: #333;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 5px;
-      flex: 1;
-      margin: 0 10px;
-      text-align: center;
-    }
-    .nav-buttons a:hover {
-      background: #555;
-    }
-
     /* Botón de regresar */
     .back-button {
       display: block;
@@ -67,6 +45,7 @@
       background: #555;
     }
 
+    /* Imágenes fullscreen en pantallas grandes */
     @media (min-width: 1024px) {
       #reader img {
         width: 100vw;
@@ -76,44 +55,38 @@
   </style>
 </head>
 <body>
-  <h1>{{ page.manga | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}</h1>
+  <h1>{{ page.manga | default: page.title | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}</h1>
   <div id="reader"></div>
 
-  <div class="nav-buttons">
-    {% if page.capitulo and page.capitulo > 1 %}
-      <a href="{{ site.baseurl }}/{{ page.manga_slug | default: "manga" }}/cap{{ page.capitulo | minus:1 }}/">← Capítulo anterior</a>
-    {% else %}
-      <span></span>
-    {% endif %}
-    <a href="{{ site.baseurl }}/{{ page.manga_slug | default: "manga" }}/cap{{ page.capitulo | plus:1 }}/">Capítulo siguiente →</a>
-  </div>
-
-  <a class="back-button" href="{{ site.baseurl }}{{ page.return_to | default: "/" }}">← Regresar al post</a>
+  <a class="back-button" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
 
   <script>
-    fetch('{{ site.baseurl }}{{ page.images_json | default: "" }}')
-      .then(response => response.json())
-      .then(images => {
-        const reader = document.getElementById('reader');
-
-        // Ordenar numéricamente
-        images.sort((a, b) => {
-          const numA = parseInt(a.match(/(\d+)\.(jpg|png|webp)$/)[1]);
-          const numB = parseInt(b.match(/(\d+)\.(jpg|png|webp)$/)[1]);
-          return numA - numB;
+    const jsonPath = '{{ site.baseurl }}{{ page.images_json | default: "" }}';
+    if (jsonPath.trim() !== "") {
+      fetch(jsonPath)
+        .then(response => response.json())
+        .then(images => {
+          const reader = document.getElementById('reader');
+          // Ordenar por número en el nombre
+          images.sort((a, b) => {
+            const numA = parseInt(a.match(/(\d+)\.(jpg|png|webp)$/)[1]);
+            const numB = parseInt(b.match(/(\d+)\.(jpg|png|webp)$/)[1]);
+            return numA - numB;
+          });
+          // Agregar imágenes
+          images.forEach(img => {
+            const image = document.createElement('img');
+            image.src = '{{ site.baseurl }}' + img;
+            image.loading = 'lazy';
+            reader.appendChild(image);
+          });
+        })
+        .catch(err => {
+          document.getElementById('reader').innerHTML = "<p>No se pudieron cargar las imágenes.</p>";
         });
-
-        // Agregar imágenes
-        images.forEach(img => {
-          const image = document.createElement('img');
-          image.src = '{{ site.baseurl }}' + img;
-          image.loading = 'lazy';
-          reader.appendChild(image);
-        });
-      })
-      .catch(err => {
-        document.getElementById('reader').innerHTML = "<p>No se pudieron cargar las imágenes.</p>";
-      });
+    } else {
+      document.getElementById('reader').innerHTML = "<p>No se encontraron imágenes.</p>";
+    }
   </script>
 </body>
 </html>
