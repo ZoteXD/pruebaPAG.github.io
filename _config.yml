@@ -7,17 +7,16 @@
 # Permalink para posts normales (más limpio, sin fecha)
  permalink: /:title/
 
+ #Dentro de collections van los nombres de las carpetas que contienen los posts.
  #El output: true es para que se generen las páginas HTML de cada post.
- #Los marcados con "#*" son para indicar que esta creada esa carpeta y evitar errores.
  collections:
-  ririsa:
-  ririsa: #*
-    output: true 
-    permalink: /ririsa/:title/
-  saneka: #*
-    output: true
-    permalink: /saneka/:title/
   100novias:
-  100novias: #*
     output: true
-    permalink: /100novias/:title/
+    permalink: /100novias/cap:capitulo/
+  ririsa:
+    output: true
+    permalink: /ririsa/cap:capitulo/
+  saneka:
+    output: true
+    permalink: /saneka/cap:capitulo/
+
