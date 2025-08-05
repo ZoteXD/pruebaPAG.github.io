@@ -27,3 +27,4 @@ fetch('{{ site.baseurl }}{{ page.images_json }}')
     document.getElementById('reader').innerHTML = "<p>No se pudieron cargar las imágenes.</p>";
   });
 </script>
+a
