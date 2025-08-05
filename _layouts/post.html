@@ -9,9 +9,11 @@ layout: default
     {{ content }}
   </div>
 
+  {# Sirve para mostrar la fecha de publicación del post, pero no es util ahora.
   <div class="date">
     Written on {{ page.date | date: "%B %e, %Y" }}
   </div>
-
+  #}
+  
   {% include disqus.html %}
 </article>
