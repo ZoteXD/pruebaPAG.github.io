@@ -1,8 +1,10 @@
 ---
 title: "Saneka - Capítulo 1"
 layout: default
+permalink: /cap1-saneka/
 images_json: /assets/mangas/saneka/cap1/images.json
 ---
+
 <h1>{{ page.title }}</h1>
 <div id="reader"></div>
 
