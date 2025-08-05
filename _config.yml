@@ -10,13 +10,13 @@
  #Dentro de collections van los nombres de las carpetas que contienen los posts.
  #El output: true es para que se generen las páginas HTML de cada post.
  collections:
-  100novias:
-    output: true
-    permalink: /100novias/cap:capitulo/
   ririsa:
     output: true
-    permalink: /ririsa/cap:capitulo/
+    permalink: /ririsa/:title/
   saneka:
     output: true
-    permalink: /saneka/cap:capitulo/
+    permalink: /saneka/:title/
+  "100novias":
+    output: true
+    permalink: /100novias/:title/
 
