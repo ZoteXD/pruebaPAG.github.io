@@ -7,8 +7,9 @@ manga_slug: saneka
 permalink: /saneka/cap1/
 images_json: /assets/mangas/saneka/cap1/images.json
 return_to: /saneka/
+redirect_from:
+  - /cap1-saneka/
 ---
-
 
 <h1>{{ page.title }}</h1>
 <div id="reader"></div>

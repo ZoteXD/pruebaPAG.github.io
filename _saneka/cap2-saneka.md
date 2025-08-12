@@ -2,13 +2,14 @@
 layout: reader
 title: "Saneka - Capítulo 2"
 capitulo: 2
-es_ultimo: true
+es_ultimo: false
 manga_slug: saneka
-permalink: /saneka/cap2/
+permalink: /saneka/cap1/
 images_json: /assets/mangas/saneka/cap2/images.json
 return_to: /saneka/
+redirect_from:
+  - /cap2-saneka/
 ---
-
 
 
 <h1>{{ page.title }}</h1>

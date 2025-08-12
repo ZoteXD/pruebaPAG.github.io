@@ -5,74 +5,19 @@
   <title>{{ page.title | default: "Capítulo" }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      background: #000;
-      color: #fff;
-      font-family: Arial, sans-serif;
-    }
+    body, html { margin: 0; padding: 0; background: #000; color: #fff; font-family: Arial, sans-serif; }
+    h1 { text-align: center; padding: 15px; background: #111; margin: 0 0 10px 0; font-size: 1.5em; }
+    #reader img { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto 10px auto; }
 
-    h1 {
-      text-align: center;
-      padding: 15px;
-      background: #111;
-      margin: 0 0 10px 0;
-      font-size: 1.5em;
-    }
+    .nav-buttons { display: flex; justify-content: space-between; max-width: 800px; margin: 30px auto; padding: 0 20px; }
+    .nav-buttons a { padding: 10px 20px; background: #333; color: #fff; text-decoration: none; border-radius: 5px; flex: 1; margin: 0 10px; text-align: center; }
+    .nav-buttons a:hover { background: #555; }
 
-    #reader img {
-      width: 100%;
-      max-width: 100%;
-      height: auto;
-      display: block;
-      margin: 0 auto 10px auto;
-    }
+    .back-button { display: block; text-align: center; margin: 30px auto; padding: 10px 20px; background: #333; color: #fff; text-decoration: none; border-radius: 5px; max-width: 300px; }
+    .back-button:hover { background: #555; }
 
-    /* Controles de navegación */
-    .nav-buttons {
-      display: flex;
-      justify-content: space-between;
-      max-width: 800px;
-      margin: 30px auto;
-      padding: 0 20px;
-    }
-    .nav-buttons a {
-      padding: 10px 20px;
-      background: #333;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 5px;
-      flex: 1;
-      margin: 0 10px;
-      text-align: center;
-    }
-    .nav-buttons a:hover {
-      background: #555;
-    }
-
-    /* Botón de regresar */
-    .back-button {
-      display: block;
-      text-align: center;
-      margin: 30px auto;
-      padding: 10px 20px;
-      background: #333;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 5px;
-      max-width: 300px;
-    }
-    .back-button:hover {
-      background: #555;
-    }
-
-    /* Imágenes fullscreen en pantallas grandes */
     @media (min-width: 1024px) {
-      #reader img {
-        width: 100vw;
-        max-width: 100vw;
-      }
+      #reader img { width: 100vw; max-width: 100vw; }
     }
   </style>
 </head>
@@ -96,27 +41,47 @@
   <a class="back-button" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
 
   <script>
-    const jsonPath = '{{ site.baseurl }}{{ page.images_json | default: "" }}';
-    if (jsonPath.trim() !== "") {
-      fetch(jsonPath)
-        .then(response => response.json())
-        .then(images => {
+    // Normaliza rutas para evitar duplicar baseurl en GitHub Pages
+    function withBase(url) {
+      const base = '{{ site.baseurl }}';
+      if (!url) return '';
+      if (url.startsWith('http')) return url;
+      if (base && url.startsWith(base)) return url;    // ya trae base
+      if (url.startsWith('/')) return base + url;      // absoluto -> prepend base
+      return base + '/' + url.replace(/^\.?\//,'');    // relativo
+    }
+
+    const jsonURL = withBase('{{ page.images_json | default: "" }}');
+
+    if (jsonURL) {
+      fetch(jsonURL)
+        .then(r => r.json())
+        .then(list => {
           const reader = document.getElementById('reader');
-          // Ordenar por número en el nombre
-          images.sort((a, b) => {
-            const numA = parseInt(a.match(/(\d+)\.(jpg|png|webp)$/)[1]);
-            const numB = parseInt(b.match(/(\d+)\.(jpg|png|webp)$/)[1]);
-            return numA - numB;
+
+          // Filtra solo archivos numerados válidos y ordena 1..2..10
+          const imgs = (Array.isArray(list) ? list : [])
+            .filter(p => /(\d+)\.(jpg|png|webp)$/i.test(p))
+            .sort((a,b) => {
+              const A = parseInt(a.match(/(\d+)\.(jpg|png|webp)$/i)[1],10);
+              const B = parseInt(b.match(/(\d+)\.(jpg|png|webp)$/i)[1],10);
+              return A - B;
+            });
+
+          // Pinta
+          imgs.forEach(p => {
+            const img = document.createElement('img');
+            img.src = withBase(p);
+            img.loading = 'lazy';
+            img.style.marginBottom = '10px';
+            reader.appendChild(img);
           });
-          // Agregar imágenes
-          images.forEach(img => {
-            const image = document.createElement('img');
-            image.src = '{{ site.baseurl }}' + img;
-            image.loading = 'lazy';
-            reader.appendChild(image);
-          });
+
+          if (imgs.length === 0) {
+            reader.innerHTML = "<p>No se encontraron imágenes válidas.</p>";
+          }
         })
-        .catch(err => {
+        .catch(() => {
           document.getElementById('reader').innerHTML = "<p>No se pudieron cargar las imágenes.</p>";
         });
     } else {
