@@ -1,33 +1,13 @@
-# URL base del sitio
 url: "https://zotexd.github.io"
 baseurl: "/pruebaPAG.github.io"
 
-# Permalink para los posts normales en _posts/
+# Solo aplica el permalink limpio a _posts (no a colecciones)
 defaults:
-  - scope:
-      path: ""
-      type: posts
-    values:
-      permalink: "/:title/"
+  - scope: { path: "", type: posts }
+    values: { permalink: "/:title/" }
 
-# Colecciones personalizadas
+# Colecciones (OJO: "100novias" con comillas)
 collections:
-  "100novias":
-    output: true
-    permalink: /100novias/:name/
-  saneka:
-    output: true
-    permalink: /saneka/:name/
-  ririsa:
-    output: true
-    permalink: /ririsa/:name/
-
-# Configuración adicional de Jekyll
-theme: jekyll-theme-primer
-markdown: kramdown
-plugins:
-  - jekyll-paginate
-  - jekyll-seo-tag
-  - jekyll-relative-links
-paginate: 5
-paginate_path: "/page:num/"
+  "100novias": { output: true, permalink: /100novias/:name/ }
+  saneka:      { output: true, permalink: /saneka/:name/ }
+  ririsa:      { output: true, permalink: /ririsa/:name/ }
