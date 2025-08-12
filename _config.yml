@@ -4,19 +4,24 @@
  baseurl: "/pruebaPAG.github.io"
  url: "https://zotexd.github.io"
  markdown: kramdown
-# Permalink para posts normales (más limpio, sin fecha)
- permalink: /:title/
 
- #Dentro de collections van los nombres de las carpetas que contienen los posts.
- #El output: true es para que se generen las páginas HTML de cada post.
+# ⛔ No afectes a colecciones con un permalink global.
+# Si quieres /:title/ solo para posts de _posts/, usa defaults:
+ defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      permalink: "/:title/"
+
+#  Colecciones
  collections:
-  ririsa:
-    output: true
-    permalink: /ririsa/:title/
-  saneka:
-    output: true
-    permalink: /saneka/:title/
   "100novias":
     output: true
-    permalink: /100novias/:title/
-
+    permalink: /100novias/:name/
+  saneka:
+    output: true
+    permalink: /saneka/:name/
+  ririsa:
+    output: true
+    permalink: /ririsa/:name/
