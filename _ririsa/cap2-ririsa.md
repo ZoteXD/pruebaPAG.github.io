@@ -5,7 +5,7 @@ capitulo: 2
 es_ultimo: true
 manga_slug: ririsa
 permalink: /ririsa/cap2/
-images_json: /assets/mangas/ririsa/cap2/images.json
+images_json: https://drive.google.com/uc?export=download&id=1XYx0OFRTYz6r5Vuoa9yLFiSUN-uaTUBA
 return_to: /ririsa/
 ---
 

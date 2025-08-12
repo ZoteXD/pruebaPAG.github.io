@@ -5,7 +5,7 @@ capitulo: 1
 es_ultimo: false
 manga_slug: ririsa
 permalink: /ririsa/cap1/
-images_json: /assets/mangas/ririsa/cap1/images.json
+images_json: https://drive.google.com/uc?export=download&id=1VbgxBQHYEBJeLx1awds9NT7hQxbeq1pK
 return_to: /ririsa/
 ---
 

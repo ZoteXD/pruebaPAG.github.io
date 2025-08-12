@@ -1,7 +1,0 @@
-El BAT permite que se cree un archivo images.json el cual ayuda a que se generen la lista de imágenes de manera automática para evitar escribirlos uno a uno en el lector de imágenes.
-
-NO CHOCA CON JEKYLL, por lo que puedes dejarlo ahí sin problemas.
-
-SU USO:
- -Copia y pega en la carpeta que lo requiera o para avtualizar si se subieron más imágenes.
- -Una vez creado el .json, borra el BAT de ahí (OPCIONAL, solo para mantener un orden, pero no afecta en nada al JEKYLL).
