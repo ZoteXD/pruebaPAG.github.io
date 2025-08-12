@@ -8,7 +8,7 @@ permalink: /100novias/cap169/
 images_json: https://drive.google.com/uc?export=download&id=19Y76vul0Dd3l08oSuKKg_MQokPwJVaPe
 return_to: /100novias/
 redirect_from:
-  - /cap168-100novias/
+  - /cap169-100novias/
 ---
 
 
