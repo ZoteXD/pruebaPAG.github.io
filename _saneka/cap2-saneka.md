@@ -5,7 +5,7 @@ capitulo: 2
 es_ultimo: false
 manga_slug: saneka
 permalink: /saneka/cap1/
-images_json: /assets/mangas/saneka/cap2/images.json
+images_json: https://drive.google.com/uc?export=download&id=1P_B1YbMdyDxQhR-0lDOBNaacyDaPBy6U
 return_to: /saneka/
 redirect_from:
   - /cap2-saneka/

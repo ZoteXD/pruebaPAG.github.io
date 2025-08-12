@@ -5,7 +5,7 @@ capitulo: 169
 es_ultimo: true
 manga_slug: 100novias
 permalink: /100novias/cap168/
-images_json: /assets/mangas/100novias/cap169/images.json
+images_json: https://drive.google.com/uc?export=download&id=19Y76vul0Dd3l08oSuKKg_MQokPwJVaPe
 return_to: /100novias/
 redirect_from:
   - /cap168-100novias/
