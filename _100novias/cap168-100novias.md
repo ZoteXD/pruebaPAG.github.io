@@ -5,14 +5,11 @@ capitulo: 168
 es_ultimo: false
 manga_slug: 100novias
 permalink: /100novias/cap168/
-images_json: https://drive.google.com/uc?export=download&id=1XfUVAcMDJUe_UKsjHRbrQwgr-UdLJfFX
+images_json: assets/mangas/100novias/cap168/images.json
 return_to: /100novias/
 redirect_from:
   - /cap168-100novias/
 ---
-
-
-
 
 <h1>{{ page.title }}</h1>
 <div id="reader"></div>
