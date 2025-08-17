@@ -2,15 +2,22 @@
   {
     "mangaId": "ririsa",
     "title": "Ririsa",
-    "cover": "https://drive.google.com/thumbnail?id=FILEID_PORTADA_RIRISA&sz=w600",
+    "cover": "assets/img/ririsa-cover.jpg",
     "tags": ["romance","comedia"],
-    "latest": "cap1"
+    "latest": "cap2"
   },
   {
     "mangaId": "100novias",
     "title": "Las 100 Novias",
-    "cover": "https://drive.google.com/thumbnail?id=FILEID_PORTADA_100N&sz=w600",
+    "cover": "assets/img/100n-cover.jpg",
     "tags": ["comedia","romance"],
     "latest": "cap168"
+  },
+  {
+    "mangaId": "saneka",
+    "title": "My Marriage with Saneka",
+    "cover": "assets/img/saneka-cover.jpg",
+    "tags": ["romance","comedia"],
+    "latest": "cap2"
   }
 ]
