@@ -8,7 +8,7 @@ title: MangaReader
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MangaReader</title>
+<title>Manga Reader</title>
 <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css" />
 </head>
 <body class="theme">
@@ -55,7 +55,7 @@ title: MangaReader
 
   async function init() {
     // Espera: [ { mangaId, title, coverId|cover, tags, latest }, ... ]
-    const catalog = await loadJSON(`${BASE}/assets/catalog.json`);
+    const catalog = await loadJSON(`${BASE}/assets/catalogo.json`);
     data = catalog.map(item => ({
       ...item,
       cover: item.cover
