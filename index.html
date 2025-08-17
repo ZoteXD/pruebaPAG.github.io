@@ -1,6 +1,7 @@
 ---
 layout: default
 title: MangaReader
+use_main_css: true
 ---
 
 <!doctype html>
@@ -35,13 +36,6 @@ title: MangaReader
   const grid = document.getElementById('grid');
   const err = document.getElementById('home-error');
   const search = document.getElementById('search');
-
-  // Catálogo de respaldo por si aún no tienes assets/catalog.json
-  const fallbackCatalog = [
-    /* EJEMPLO:
-    { mangaId: "ririsa", title: "Ririsa", cover: "https://drive.google.com/thumbnail?id=FILEID_PORTADA&sz=w600", latest: "cap1", tags: ["romance"] },
-    */
-  ];
 
   let data = [];
   init().catch(e => {
@@ -82,7 +76,9 @@ title: MangaReader
     items.forEach(item => {
       const a = document.createElement('a');
       a.className = 'card';
-      a.href = `${BASE}/reader.html?manga=${encodeURIComponent(item.mangaId)}&cap=${encodeURIComponent(item.latest)}`;
+      a.href = item.url
+        ? (item.url.startsWith('http') ? item.url : `${BASE}${item.url}`)
+        : `${BASE}/reader.html?manga=${encodeURIComponent(item.mangaId)}&cap=${encodeURIComponent(item.latest)}`;
 
       const img = document.createElement('img');
       img.className = 'cover';

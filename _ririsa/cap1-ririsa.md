@@ -5,7 +5,7 @@ capitulo: 1
 es_ultimo: false
 manga_slug: ririsa
 permalink: /ririsa/cap1/
-images_json: assets/mangas/ririsa/cap1/images.json
+images_json: /assets/mangas/ririsa/cap1/images.json
 return_to: /ririsa/
 ---
 
