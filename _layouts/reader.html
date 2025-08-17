@@ -41,52 +41,71 @@
   <a class="back-button" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
 
   <script>
-    // Normaliza rutas para evitar duplicar baseurl en GitHub Pages
-    function withBase(url) {
-      const base = '{{ site.baseurl }}';
-      if (!url) return '';
-      if (url.startsWith('http')) return url;
-      if (base && url.startsWith(base)) return url;    // ya trae base
-      if (url.startsWith('/')) return base + url;      // absoluto -> prepend base
-      return base + '/' + url.replace(/^\.?\//,'');    // relativo
-    }
+  // Normaliza rutas para evitar duplicar baseurl en GitHub Pages
+  function withBase(url) {
+    const base = '{{ site.baseurl }}';
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url; // absoluta: dejar tal cual
+    if (base && url.startsWith(base)) return url; // ya trae base
+    if (url.startsWith('/')) return base + url;   // absoluta del sitio
+    return base + '/' + url.replace(/^\.?\//,''); // relativa
+  }
 
-    const jsonURL = withBase('{{ page.images_json | default: "" }}');
+  const jsonURL = withBase('{{ page.images_json | default: "" }}');
 
-    if (jsonURL) {
-      fetch(jsonURL)
-        .then(r => r.json())
-        .then(list => {
-          const reader = document.getElementById('reader');
+  if (jsonURL) {
+    fetch(jsonURL)
+      .then(r => r.json())
+      .then(list => {
+        const reader = document.getElementById('reader');
 
-          // Filtra solo archivos numerados válidos y ordena 1..2..10
-          const imgs = (Array.isArray(list) ? list : [])
-            .filter(p => /(\d+)\.(jpg|png|webp)$/i.test(p))
-            .sort((a,b) => {
-              const A = parseInt(a.match(/(\d+)\.(jpg|png|webp)$/i)[1],10);
-              const B = parseInt(b.match(/(\d+)\.(jpg|png|webp)$/i)[1],10);
-              return A - B;
-            });
+        // Acepta arrays de strings o de objetos {url, name, order}
+        let entries = Array.isArray(list) ? list : [];
 
-          // Pinta
-          imgs.forEach(p => {
-            const img = document.createElement('img');
-            img.src = withBase(p);
-            img.loading = 'lazy';
-            img.style.marginBottom = '10px';
-            reader.appendChild(img);
-          });
-
-          if (imgs.length === 0) {
-            reader.innerHTML = "<p>No se encontraron imágenes válidas.</p>";
+        entries = entries.map((item, idx) => {
+          if (typeof item === 'string') {
+            // intenta sacar número del string (si existe); si no, usa el índice (mantiene orden del JSON)
+            const m = item.match(/(\d+)/);
+            const order = m ? parseInt(m[1], 10) : (idx + 1);
+            return { url: item, order };
+          } else if (item && typeof item === 'object') {
+            const url = item.url || item.link || item.src || '';
+            let order = item.order;
+            if (order == null) {
+              const base = item.name || url;
+              const m = String(base).match(/(\d+)/);
+              order = m ? parseInt(m[1], 10) : (idx + 1);
+            }
+            return url ? { url, order } : null;
           }
-        })
-        .catch(() => {
-          document.getElementById('reader').innerHTML = "<p>No se pudieron cargar las imágenes.</p>";
+          return null;
+        }).filter(Boolean);
+
+        // Ordena si encontró números; si todos eran sin número, el orden queda por índice del JSON
+        entries.sort((a, b) => a.order - b.order);
+
+        // Pinta imágenes
+        let count = 0;
+        entries.forEach(e => {
+          const img = document.createElement('img');
+          img.src = withBase(e.url);
+          img.loading = 'lazy';
+          img.style.width = '100%';
+          img.style.marginBottom = '10px';
+          reader.appendChild(img);
+          count++;
         });
-    } else {
-      document.getElementById('reader').innerHTML = "<p>No se encontraron imágenes.</p>";
-    }
-  </script>
+
+        if (count === 0) {
+          reader.innerHTML = "<p>No se encontraron imágenes válidas.</p>";
+        }
+      })
+      .catch(() => {
+        document.getElementById('reader').innerHTML = "<p>No se pudieron cargar las imágenes.</p>";
+      });
+  } else {
+    document.getElementById('reader').innerHTML = "<p>No se encontraron imágenes.</p>";
+  }
+</script>
 </body>
 </html>
