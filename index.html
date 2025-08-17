@@ -1,0 +1,120 @@
+---
+layout: default
+title: MangaReader
+---
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MangaReader</title>
+<link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css" />
+</head>
+<body class="theme">
+<header class="appbar">
+  <div class="brand">MangaReader</div>
+  <input id="search" class="search" placeholder="Buscar por título o tag…" />
+</header>
+
+<main class="container">
+  <section>
+    <h1>Biblioteca</h1>
+    <div id="grid" class="grid"></div>
+    <div id="home-error" class="error hidden"></div>
+  </section>
+</main>
+
+<!-- Un único módulo que importa utils.js -->
+<script type="module">
+  // BASE solo aquí (Liquid se procesa en HTML, no en .js)
+  const BASE = "{{ site.baseurl }}";
+
+  import { loadJSON } from "{{ site.baseurl }}/assets/js/utils.js";
+
+  const grid = document.getElementById('grid');
+  const err = document.getElementById('home-error');
+  const search = document.getElementById('search');
+
+  // Catálogo de respaldo por si aún no tienes assets/catalog.json
+  const fallbackCatalog = [
+    /* EJEMPLO:
+    { mangaId: "ririsa", title: "Ririsa", cover: "https://drive.google.com/thumbnail?id=FILEID_PORTADA&sz=w600", latest: "cap1", tags: ["romance"] },
+    */
+  ];
+
+  let data = [];
+  init().catch(e => {
+    data = fallbackCatalog;
+    render(data);
+    if (!fallbackCatalog.length) {
+      err.textContent = 'Crea assets/catalog.json o edita el fallback dentro de index.html.';
+      err.classList.remove('hidden');
+    }
+  });
+
+  async function init() {
+    // Espera: [ { mangaId, title, coverId|cover, tags, latest }, ... ]
+    const catalog = await loadJSON(`${BASE}/assets/catalog.json`);
+    data = catalog.map(item => ({
+      ...item,
+      cover: item.cover
+        ? item.cover
+        : (item.coverId ? `https://drive.google.com/thumbnail?id=${item.coverId}&sz=w600` : '')
+    }));
+    render(data);
+
+    search.addEventListener('input', () => {
+      const q = search.value.trim().toLowerCase();
+      const filtered = !q ? data : data.filter(item => {
+        const hayTitulo = (item.title||'').toLowerCase().includes(q);
+        const hayTag = (item.tags||[]).some(t => (t||'').toLowerCase().includes(q));
+        return hayTitulo || hayTag;
+      });
+      render(filtered);
+    });
+  }
+
+  function render(items) {
+    grid.innerHTML = '';
+    const frag = document.createDocumentFragment();
+
+    items.forEach(item => {
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.href = `${BASE}/reader.html?manga=${encodeURIComponent(item.mangaId)}&cap=${encodeURIComponent(item.latest)}`;
+
+      const img = document.createElement('img');
+      img.className = 'cover';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.src = item.cover || '';
+      img.alt = `${item.title || item.mangaId} portada`;
+      img.addEventListener('error', () => {
+        const fallback = document.createElement('div');
+        fallback.className = 'cover fallback';
+        fallback.textContent = (item.title||'?')[0] || '?';
+        img.replaceWith(fallback);
+      });
+
+      const info = document.createElement('div');
+      info.className = 'info';
+      const h3 = document.createElement('h3'); h3.textContent = item.title || item.mangaId;
+
+      const chips = document.createElement('div'); chips.className = 'chips';
+      (item.tags || []).forEach(t => {
+        const c = document.createElement('span'); c.className = 'chip'; c.textContent = t; chips.appendChild(c);
+      });
+
+      const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = `Último: ${item.latest}`;
+
+      info.appendChild(h3); info.appendChild(chips); info.appendChild(meta);
+      a.appendChild(img); a.appendChild(info);
+      frag.appendChild(a);
+    });
+
+    grid.appendChild(frag);
+  }
+</script>
+</body>
+</html>
