@@ -81,6 +81,7 @@
   const BASE = '{{ site.baseurl }}';
   const RAW  = ('{{ page.images_json }}' || '').trim();
 
+  // Resuelve URL del JSON (absoluta o relativa al sitio)
   const JSON_URL = /^https?:\/\//i.test(RAW)
     ? RAW
     : (BASE + (RAW.startsWith('/') ? RAW : '/' + RAW));
@@ -88,11 +89,13 @@
   const mount   = document.getElementById('reader');
   const pagerEl = document.getElementById('pager');
 
-  // --- Helpers ---
+  // ---------- Helpers ----------
   const withBase = (u) => /^https?:\/\//i.test(u) ? u : (BASE + (u.startsWith('/') ? u : '/' + u));
+
+  // Normaliza cualquier variante de Drive a usercontent + download (mejor para <img>)
   function normalizeGoogleUrl(u){
     if (!u) return '';
-    // drive -> usercontent (download)
+    // drive.google.com -> usercontent (download)
     u = u.replace(
       /^https:\/\/drive\.google\.com\/uc\?export=(?:view|download)&id=([^&]+).*$/i,
       'https://drive.usercontent.google.com/uc?id=$1&export=download'
@@ -104,55 +107,77 @@
     );
     return u;
   }
+
+  // Extrae el fileId de distintas formas de URL de Drive
+  function extractDriveId(u){
+    if (!u) return '';
+    let m = u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);      // ...uc?export=*&id=FILEID
+    if (m) return m[1];
+    m = u.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/);      // .../file/d/FILEID/...
+    if (m) return m[1];
+    m = u.match(/\/open\?id=([a-zA-Z0-9_-]{10,})/);      // .../open?id=FILEID
+    if (m) return m[1];
+    return '';
+  }
+
+  // Genera lista de URLs a intentar para una página (desde url e id)
   function candidatesFrom(p){
-    // Orden de intentos por imagen (máx 3)
-    const id  = p.id || '';
-    const u0  = normalizeGoogleUrl(String(p.url||''));
     const tries = [];
+    // 1) URL original (si existe), normalizada
+    const u0 = normalizeGoogleUrl(String(p.url || ''));
     if (u0) tries.push(u0);
+
+    // 2) Intentos adicionales a partir del id (del JSON o derivado de la URL)
+    const id = p.id || extractDriveId(u0);
     if (id) {
       tries.push(
         `https://drive.usercontent.google.com/uc?id=${encodeURIComponent(id)}&export=download`,
-        `https://drive.google.com/uc?export=view&id=${encodeURIComponent(id)}`, // fallback
+        `https://drive.google.com/uc?export=view&id=${encodeURIComponent(id)}`,     // fallback
         `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1600` // último recurso
       );
     }
-    // eliminar duplicados
+
+    // Quita duplicados conservando el orden
     return [...new Set(tries)];
   }
-  // ----------------
+  // --------------------------------
 
   try {
     const res = await fetch(JSON_URL, { cache: 'no-cache' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
 
+    // Acepta array simple de URLs o formato extendido {pages:[{url|id,name,...}]}
     const pages = Array.isArray(data)
       ? data.map(u => ({ url: u }))
       : (Array.isArray(data.pages) ? data.pages : []);
 
     if (!pages.length) throw new Error('JSON vacío o formato no soportado');
 
-    // Orden por número
+    // Orden por primer número en nombre/url (si existe)
     pages.sort((a, b) => {
       const A = parseInt((String(a.name || a.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
       const B = parseInt((String(b.name || b.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
       return A - B;
     });
 
-    // Render básico: crear nodos primero
+    // Pre-render: crear nodos para todas las páginas
     const items = pages.map((p, i) => {
       const fig = document.createElement('figure');
       fig.className = 'page';
+
       const img = document.createElement('img');
       img.alt = `Página ${i + 1}`;
       img.loading = 'lazy';
       img.decoding = 'async';
       img.referrerPolicy = 'no-referrer';
+
       const cap = document.createElement('figcaption');
       cap.textContent = String(i + 1);
+
       fig.appendChild(img);
       fig.appendChild(cap);
+
       return { fig, img, tries: candidatesFrom(p), index: i };
     });
 
@@ -163,11 +188,12 @@
 
     pagerEl.textContent = `Pag ${items.length ? 1 : 0} / ${items.length}`;
 
-    // Actualiza pager con intersección
+    // Pager dinámico con IntersectionObserver
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries) => {
-        const vis = entries.filter(e => e.isIntersecting)
-                           .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+        const vis = entries
+          .filter(e => e.isIntersecting)
+          .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
         if (vis) {
           const idx = items.findIndex(x => x.fig === vis.target);
           if (idx >= 0) pagerEl.textContent = `Pag ${idx + 1} / ${items.length}`;
@@ -176,14 +202,16 @@
       items.forEach(it => io.observe(it.fig));
     }
 
-    // === Cola con concurrencia limitada (evita 429/403) ===
-    const CONCURRENCY = 4;
+    // === Descarga con concurrencia limitada y reintentos ===
+    const CONCURRENCY = 2;                 // baja si ves (failed) por rate-limit
+    const INTERVAL_MS = 200;               // pequeña pausa entre tareas
     let cursor = 0;
+
     function loadOne(it){
       return new Promise((resolve) => {
         const next = () => {
           if (!it.tries.length) {
-            // mostrar error en línea
+            // mensaje inline cuando no hubo forma de cargar
             const warn = document.createElement('div');
             warn.className = 'error';
             warn.textContent = `⚠️ No se pudo cargar la página ${it.index + 1}`;
@@ -191,22 +219,26 @@
             return resolve();
           }
           const u = withBase(it.tries.shift());
-          it.img.onerror = () => next();
-          it.img.onload  = () => resolve();
+          it.img.onerror = () => next();      // intenta el siguiente candidato
+          it.img.onload  = () => resolve();   // listo
           it.img.src = u;
         };
         next();
       });
     }
+
     async function worker(){
       while (true) {
         const i = cursor++;
         if (i >= items.length) break;
         await loadOne(items[i]);
+        // antirate-limit
+        if (INTERVAL_MS) await new Promise(r => setTimeout(r, INTERVAL_MS));
       }
     }
+
     await Promise.all(Array.from({length: CONCURRENCY}, worker));
-    // =====================================================
+    // ======================================================
 
   } catch (err) {
     mount.innerHTML = `<p class="error">No se pudieron cargar las imágenes. ${err.message}</p>`;
