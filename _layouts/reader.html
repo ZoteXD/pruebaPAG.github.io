@@ -77,91 +77,110 @@
     {% include analytics.html %}
 
     <script>
-    (async () => {
-      const BASE = '{{ site.baseurl }}';
-      const RAW  = ('{{ page.images_json }}' || '').trim();
+(async () => {
+  const BASE = '{{ site.baseurl }}';
+  const RAW  = ('{{ page.images_json }}' || '').trim();
 
-      const JSON_URL = /^https?:\/\//i.test(RAW)
-        ? RAW
-        : (BASE + (RAW.startsWith('/') ? RAW : '/' + RAW));
+  const JSON_URL = /^https?:\/\//i.test(RAW)
+    ? RAW
+    : (BASE + (RAW.startsWith('/') ? RAW : '/' + RAW));
 
-      const mount   = document.getElementById('reader');
-      const pagerEl = document.getElementById('pager');
+  const mount   = document.getElementById('reader');
+  const pagerEl = document.getElementById('pager');
 
-      const toView = (u) => String(u || '').replace('export=download', 'export=view');
-      const absOrBase = (u) => /^https?:\/\//i.test(u) ? u : (BASE + (u.startsWith('/') ? u : '/' + u));
+  // --- helpers nuevos ---
+  const withBase = (u) => /^https?:\/\//i.test(u) ? u : (BASE + (u.startsWith('/') ? u : '/' + u));
 
-      try {
-        const res = await fetch(JSON_URL, { cache: 'no-cache' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
+  // Fuerza siempre usercontent + export=download (lo único que <img> embebe fiable)
+  function normalizeGoogleUrl(u) {
+    if (!u) return '';
+    // drive.google.com -> usercontent + download
+    u = u.replace(
+      /^https:\/\/drive\.google\.com\/uc\?export=(?:view|download)&id=([^&]+).*$/i,
+      'https://drive.usercontent.google.com/uc?id=$1&export=download'
+    );
+    // si ya es usercontent pero viene con view -> a download
+    u = u.replace(
+      /(drive\.usercontent\.google\.com\/uc\?[^#]*?)export=view/i,
+      '$1export=download'
+    );
+    return u;
+  }
+  // ----------------------
 
-        const pages = Array.isArray(data)
-          ? data.map(u => ({ url: u }))
-          : (Array.isArray(data.pages) ? data.pages : []);
+  try {
+    const res = await fetch(JSON_URL, { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
 
-        if (!pages.length) throw new Error('JSON vacío o formato no soportado');
+    const pages = Array.isArray(data)
+      ? data.map(u => ({ url: u }))
+      : (Array.isArray(data.pages) ? data.pages : []);
 
-        pages.sort((a, b) => {
-          const A = parseInt((String(a.name || a.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
-          const B = parseInt((String(b.name || b.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
-          return A - B;
-        });
+    if (!pages.length) throw new Error('JSON vacío o formato no soportado');
 
-        const frag = document.createDocumentFragment();
-        const items = [];
+    pages.sort((a, b) => {
+      const A = parseInt((String(a.name || a.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
+      const B = parseInt((String(b.name || b.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
+      return A - B;
+    });
 
-        pages.forEach((p, i) => {
-          const fig = document.createElement('figure');
-          fig.className = 'page';
+    const frag = document.createDocumentFragment();
+    const items = [];
 
-          const img = document.createElement('img');
-          let url = p.url || '';
+    pages.forEach((p, i) => {
+      const fig = document.createElement('figure');
+      fig.className = 'page';
 
-          if (!url && p.id) {
-            url = `https://drive.google.com/thumbnail?id=${encodeURIComponent(p.id)}&sz=w1600`;
-            img.addEventListener('error', () => {
-              img.src = `https://drive.google.com/uc?export=view&id=${encodeURIComponent(p.id)}`;
-            }, { once: true });
-          }
+      const img = document.createElement('img');
 
-          url = toView(url);
-          img.src = absOrBase(url);
-          img.alt = `Página ${i + 1}`;
-          img.loading = 'lazy';
-          img.decoding = 'async';
-
-          const cap = document.createElement('figcaption');
-          cap.textContent = String(i + 1);
-
-          fig.appendChild(img);
-          fig.appendChild(cap);
-          frag.appendChild(fig);
-          items.push(fig);
-        });
-
-        mount.textContent = '';
-        mount.appendChild(frag);
-
-        pagerEl.textContent = `Pag ${items.length ? 1 : 0} / ${items.length}`;
-
-        if ('IntersectionObserver' in window) {
-          const io = new IntersectionObserver((entries) => {
-            const visible = entries.filter(e => e.isIntersecting)
-                                   .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
-            if (visible) {
-              const idx = items.indexOf(visible.target);
-              if (idx >= 0) pagerEl.textContent = `Pag ${idx + 1} / ${items.length}`;
-            }
-          }, { root: null, rootMargin: '0px 0px -40% 0px', threshold: [0.25, 0.5, 0.75] });
-          items.forEach(el => io.observe(el));
-        }
-
-      } catch (err) {
-        mount.innerHTML = `<p class="error">No se pudieron cargar las imágenes. ${err.message}</p>`;
-        pagerEl.textContent = 'Pag 0 / 0';
+      // 1) URL desde JSON o, si no, desde id
+      let url = p.url || '';
+      if (!url && p.id) {
+        url = `https://drive.usercontent.google.com/uc?id=${encodeURIComponent(p.id)}&export=download`;
       }
-    })();
-    </script>
+
+      // 2) Normaliza SIEMPRE a usercontent + download
+      url = normalizeGoogleUrl(url);
+
+      // 3) Aplica baseurl si fuera relativa
+      img.src = withBase(url);
+      img.alt = `Página ${i + 1}`;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+
+      const cap = document.createElement('figcaption');
+      cap.textContent = String(i + 1);
+
+      fig.appendChild(img);
+      fig.appendChild(cap);
+      frag.appendChild(fig);
+      items.push(fig);
+    });
+
+    mount.textContent = '';
+    mount.appendChild(frag);
+
+    pagerEl.textContent = `Pag ${items.length ? 1 : 0} / ${items.length}`;
+
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        const visible = entries.filter(e => e.isIntersecting)
+                               .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) {
+          const idx = items.indexOf(visible.target);
+          if (idx >= 0) pagerEl.textContent = `Pag ${idx + 1} / ${items.length}`;
+        }
+      }, { root: null, rootMargin: '0px 0px -40% 0px', threshold: [0.25, 0.5, 0.75] });
+      items.forEach(el => io.observe(el));
+    }
+  } catch (err) {
+    mount.innerHTML = `<p class="error">No se pudieron cargar las imágenes. ${err.message}</p>`;
+    pagerEl.textContent = 'Pag 0 / 0';
+  }
+})();
+</script>
+
   </body>
 </html>
