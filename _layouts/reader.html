@@ -1,73 +1,176 @@
 ---
-layout: default
-title: Lector
-use_main_css: false
+# Layout LECTOR: página completa (clona la base de default.html)
 ---
 
-<header class="topbar">
-  <div class="title">
-    {{ page.manga | default: page.title | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}
-  </div>
-  <div class="spacer"></div>
-  <div class="toolbar">
-    <div id="pager" class="pager">Pag 0 / 0</div>
-  </div>
-</header>
-
-<div id="reader"></div>
-
-<div class="nav-buttons">
-  {% if page.capitulo and page.capitulo > 1 %}
-    <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug | default: '' }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
+<!DOCTYPE html>
+<html>
+  <head>
+  {% if page.use_main_css %}
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css">
   {% else %}
-    <span></span>
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
   {% endif %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ page.title | escape }}</title>
+  </head>
 
-  {% if page.es_ultimo != true %}
-    <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
-  {% endif %}
-</div>
+  <body{% if page.use_main_css %} class="theme"{% endif %}>
+    <!-- Masthead igual que en default.html -->
+    <div class="wrapper-masthead">
+      <div class="container">
+        <header class="masthead clearfix">
+          <a href="{{ site.baseurl }}/" class="site-avatar"><img src="{{ site.avatar }}" /></a>
 
-<a class="back" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
+          <div class="site-info">
+            <h1 class="site-name"><a href="{{ site.baseurl }}/">{{ site.name }}</a></h1>
+            <p class="site-description">{{ site.description }}</p>
+          </div>
 
-<script type="module">
-async function load() {
-  const container = document.getElementById("reader");
-  const pager = document.getElementById("pager");
+          <nav>
+            <a href="{{ site.baseurl }}/">Inicio</a>
+            <a href="{{ site.baseurl }}/about">About</a>
+          </nav>
+        </header>
+      </div>
+    </div>
 
-  const BASE = "{{ site.baseurl }}";               // => "/pruebaPAG.github.io"
-  const jsonUrl = BASE + "{{ page.images_json }}"; // images_json debe empezar con "/"
-  if (!jsonUrl) {
-    container.innerHTML = '<p class="error">Falta el campo images_json en este capítulo.</p>';
-    return;
-  }
+    <!-- CONTENIDO DEL LECTOR -->
+    <div id="main" role="main" class="container">
 
-  try {
-    const res = await fetch(jsonUrl);
-    if (!res.ok) throw new Error(res.status);
-    const images = await res.json();
+      <!-- Barra simple con título y pager -->
+      <header class="topbar">
+        <div class="title">
+          {{ page.manga | default: page.title | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}
+        </div>
+        <div class="spacer"></div>
+        <div id="pager" class="pager">Pag 0 / 0</div>
+      </header>
 
-    pager.textContent = `Pag 1 / ${images.length}`;
+      <!-- Contenedor de páginas -->
+      <div id="reader" class="reader"></div>
 
-    images.forEach((src, i) => {
-      const fig = document.createElement("figure");
-      fig.className = "page";
+      <!-- Botones de navegación (usan tus variables) -->
+      <div class="nav-buttons">
+        {% if page.capitulo and page.capitulo > 1 %}
+          <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug | default: '' }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
+        {% else %}
+          <span></span>
+        {% endif %}
 
-      const img = document.createElement("img");
-      img.src = src;
-      img.alt = `Capítulo - ${i + 1}`;
-      img.onload = () => {
-        pager.textContent = `Pag ${i + 1} / ${images.length}`;
-      };
+        {% if page.es_ultimo != true %}
+          <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
+        {% endif %}
+      </div>
 
-      fig.appendChild(img);
-      container.appendChild(fig);
-    });
+      <!-- Regresar al post -->
+      <a class="back" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
+    </div>
 
-  } catch (e) {
-    container.innerHTML = `<p class="error">Error al cargar JSON: ${e}</p>`;
-  }
-}
+    <div class="wrapper-footer">
+      <div class="container">
+        <footer class="footer">
+          {% include svg-icons.html %}
+        </footer>
+      </div>
+    </div>
 
-load();
-</script>
+    {% include analytics.html %}
+
+    <script>
+    (async () => {
+      const BASE = '{{ site.baseurl }}';
+      const RAW  = ('{{ page.images_json }}' || '').trim();
+
+      // Construye URL del JSON: si es absoluta (https://) úsala; si es relativa, antepone BASE
+      const JSON_URL = /^https?:\/\//i.test(RAW)
+        ? RAW
+        : (BASE + (RAW.startsWith('/') ? RAW : '/' + RAW));
+
+      const mount   = document.getElementById('reader');
+      const pagerEl = document.getElementById('pager');
+
+      // Helpers
+      const toView = (u) => String(u || '').replace('export=download', 'export=view');
+      const absOrBase = (u) => /^https?:\/\//i.test(u) ? u : (BASE + (u.startsWith('/') ? u : '/' + u));
+
+      try {
+        const res = await fetch(JSON_URL, { cache: 'no-cache' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        // Normaliza: arreglo simple o {pages:[...]}
+        const pages = Array.isArray(data)
+          ? data.map(u => ({ url: u }))
+          : (Array.isArray(data.pages) ? data.pages : []);
+
+        if (!pages.length) throw new Error('JSON vacío o formato no soportado');
+
+        // Orden por primer número en name/url
+        pages.sort((a, b) => {
+          const A = parseInt((String(a.name || a.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
+          const B = parseInt((String(b.name || b.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
+          return A - B;
+        });
+
+        // Render
+        const frag = document.createDocumentFragment();
+        const items = [];
+
+        pages.forEach((p, i) => {
+          const fig = document.createElement('figure');
+          fig.className = 'page';
+
+          const img = document.createElement('img');
+          let url = p.url || '';
+
+          // Si viene solo id, usa thumbnail con fallback a view
+          if (!url && p.id) {
+            url = `https://drive.google.com/thumbnail?id=${encodeURIComponent(p.id)}&sz=w1600`;
+            img.addEventListener('error', () => {
+              img.src = `https://drive.google.com/uc?export=view&id=${encodeURIComponent(p.id)}`;
+            }, { once: true });
+          }
+
+          url = toView(url);
+          img.src = absOrBase(url);
+          img.alt = `Página ${i + 1}`;
+          img.loading = 'lazy';
+          img.decoding = 'async';
+
+          const cap = document.createElement('figcaption');
+          cap.textContent = String(i + 1);
+
+          fig.appendChild(img);
+          fig.appendChild(cap);
+          frag.appendChild(fig);
+          items.push(fig);
+        });
+
+        mount.textContent = '';
+        mount.appendChild(frag);
+
+        // Pager básico: muestra total (y el 1 inicial)
+        pagerEl.textContent = `Pag ${items.length ? 1 : 0} / ${items.length}`;
+
+        // Pager en vivo (opcional)
+        if ('IntersectionObserver' in window) {
+          const io = new IntersectionObserver((entries) => {
+            const visible = entries.filter(e => e.isIntersecting)
+                                   .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (visible) {
+              const idx = items.indexOf(visible.target);
+              if (idx >= 0) pagerEl.textContent = `Pag ${idx + 1} / ${items.length}`;
+            }
+          }, { root: null, rootMargin: '0px 0px -40% 0px', threshold: [0.25, 0.5, 0.75] });
+          items.forEach(el => io.observe(el));
+        }
+
+      } catch (err) {
+        mount.innerHTML = `<p class="error">No se pudieron cargar las imágenes. ${err && err.message ? err.message : err}</p>`;
+        if (pagerEl) pagerEl.textContent = 'Pag 0 / 0';
+      }
+    })();
+    </script>
+  </body>
+</html>
