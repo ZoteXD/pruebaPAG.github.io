@@ -3,30 +3,29 @@
 ---
 
 <!DOCTYPE html>
-<html>
+<html lang="es">
   <head>
-  {% if page.use_main_css %}
-    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css">
-  {% else %}
-    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
-  {% endif %}
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{{ page.title | escape }}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ page.title | escape }}</title>
+
+    {% if page.use_main_css %}
+      <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css">
+    {% else %}
+      <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
+    {% endif %}
   </head>
 
   <body{% if page.use_main_css %} class="theme"{% endif %}>
-    <!-- Masthead igual que en default.html -->
+    <!-- Encabezado igual a default.html -->
     <div class="wrapper-masthead">
       <div class="container">
         <header class="masthead clearfix">
           <a href="{{ site.baseurl }}/" class="site-avatar"><img src="{{ site.avatar }}" /></a>
-
           <div class="site-info">
             <h1 class="site-name"><a href="{{ site.baseurl }}/">{{ site.name }}</a></h1>
             <p class="site-description">{{ site.description }}</p>
           </div>
-
           <nav>
             <a href="{{ site.baseurl }}/">Inicio</a>
             <a href="{{ site.baseurl }}/about">About</a>
@@ -35,10 +34,10 @@
       </div>
     </div>
 
-    <!-- CONTENIDO DEL LECTOR -->
+    <!-- Contenido del lector -->
     <div id="main" role="main" class="container">
 
-      <!-- Barra simple con título y pager -->
+      <!-- Barra con título y pager -->
       <header class="topbar">
         <div class="title">
           {{ page.manga | default: page.title | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}
@@ -47,13 +46,13 @@
         <div id="pager" class="pager">Pag 0 / 0</div>
       </header>
 
-      <!-- Contenedor de páginas -->
+      <!-- Contenedor de imágenes -->
       <div id="reader" class="reader"></div>
 
-      <!-- Botones de navegación (usan tus variables) -->
+      <!-- Botones de navegación -->
       <div class="nav-buttons">
         {% if page.capitulo and page.capitulo > 1 %}
-          <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug | default: '' }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
+          <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
         {% else %}
           <span></span>
         {% endif %}
@@ -82,7 +81,6 @@
       const BASE = '{{ site.baseurl }}';
       const RAW  = ('{{ page.images_json }}' || '').trim();
 
-      // Construye URL del JSON: si es absoluta (https://) úsala; si es relativa, antepone BASE
       const JSON_URL = /^https?:\/\//i.test(RAW)
         ? RAW
         : (BASE + (RAW.startsWith('/') ? RAW : '/' + RAW));
@@ -90,7 +88,6 @@
       const mount   = document.getElementById('reader');
       const pagerEl = document.getElementById('pager');
 
-      // Helpers
       const toView = (u) => String(u || '').replace('export=download', 'export=view');
       const absOrBase = (u) => /^https?:\/\//i.test(u) ? u : (BASE + (u.startsWith('/') ? u : '/' + u));
 
@@ -99,21 +96,18 @@
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
 
-        // Normaliza: arreglo simple o {pages:[...]}
         const pages = Array.isArray(data)
           ? data.map(u => ({ url: u }))
           : (Array.isArray(data.pages) ? data.pages : []);
 
         if (!pages.length) throw new Error('JSON vacío o formato no soportado');
 
-        // Orden por primer número en name/url
         pages.sort((a, b) => {
           const A = parseInt((String(a.name || a.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
           const B = parseInt((String(b.name || b.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
           return A - B;
         });
 
-        // Render
         const frag = document.createDocumentFragment();
         const items = [];
 
@@ -124,7 +118,6 @@
           const img = document.createElement('img');
           let url = p.url || '';
 
-          // Si viene solo id, usa thumbnail con fallback a view
           if (!url && p.id) {
             url = `https://drive.google.com/thumbnail?id=${encodeURIComponent(p.id)}&sz=w1600`;
             img.addEventListener('error', () => {
@@ -150,10 +143,8 @@
         mount.textContent = '';
         mount.appendChild(frag);
 
-        // Pager básico: muestra total (y el 1 inicial)
         pagerEl.textContent = `Pag ${items.length ? 1 : 0} / ${items.length}`;
 
-        // Pager en vivo (opcional)
         if ('IntersectionObserver' in window) {
           const io = new IntersectionObserver((entries) => {
             const visible = entries.filter(e => e.isIntersecting)
@@ -167,8 +158,8 @@
         }
 
       } catch (err) {
-        mount.innerHTML = `<p class="error">No se pudieron cargar las imágenes. ${err && err.message ? err.message : err}</p>`;
-        if (pagerEl) pagerEl.textContent = 'Pag 0 / 0';
+        mount.innerHTML = `<p class="error">No se pudieron cargar las imágenes. ${err.message}</p>`;
+        pagerEl.textContent = 'Pag 0 / 0';
       }
     })();
     </script>
