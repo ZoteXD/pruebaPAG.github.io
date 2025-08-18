@@ -1,271 +1,72 @@
 ---
 layout: default
 title: Lector
-use_main_css: false   # <- Fuerza style.css
+use_main_css: false
 ---
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ page.title | default: "Capítulo" }}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root {
-      --bg: #000;
-      --elev: #111;
-      --text: #fff;
-      --muted: #9aa3af;
-      --primary: #7dd3fc;
-      --border: #1f2937;
-      --ok: #16a34a;
-    }
-    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: Arial, sans-serif; }
-    header.topbar {
-      position: sticky; top: 0; z-index: 10;
-      display: flex; align-items: center; gap: 10px;
-      padding: 12px 16px; background: var(--elev); border-bottom: 1px solid var(--border);
-    }
-    .title { font-weight: 700; }
-    .spacer { flex: 1; }
-    .toolbar { display: flex; align-items: center; gap: 8px; }
-    .btn {
-      background: #222; color: var(--text); border: 1px solid var(--border);
-      padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
-    }
-    .btn:hover { background: #2b2b2b; }
-    .pager { color: var(--muted); min-width: 110px; text-align: right; }
-
-    h1 { text-align: center; padding: 15px; background: #111; margin: 0 0 10px 0; font-size: 1.5em; }
-    #reader { max-width: 860px; margin: 0 auto; padding: 0 12px 12px; }
-    figure.page { margin: 0 0 10px 0; }
-    figure.page img {
-      width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto;
-      background: #0e1217; border-radius: 8px;
-    }
-    figure.page figcaption { text-align: right; color: var(--muted); font-size: .8rem; margin-top: 4px; }
-
-    .nav-buttons { display: flex; justify-content: space-between; max-width: 800px; margin: 30px auto; padding: 0 20px; }
-    .nav-buttons a { padding: 10px 20px; background: #333; color: #fff; text-decoration: none; border-radius: 5px; flex: 1; margin: 0 10px; text-align: center; }
-    .nav-buttons a:hover { background: #555; }
-
-    .back-button { display: block; text-align: center; margin: 30px auto; padding: 10px 20px; background: #333; color: #fff; text-decoration: none; border-radius: 5px; max-width: 300px; }
-    .back-button:hover { background: #555; }
-
-    .error { max-width: 800px; margin: 16px auto; padding: 10px 12px; background: #2b1320; border: 1px solid #4e1e36; color: #f0a3b8; border-radius: 8px; }
-
-    .toast {
-      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-      background: #0b2813; color: #c4f1d1; border: 1px solid #14532d;
-      padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; display: none;
-    }
-    .toast.show { display: block; }
-
-    @media (min-width: 1024px) {
-      #reader img { width: 100vw; max-width: 100vw; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Barra superior con contador y botones de copiar -->
-  <header class="topbar">
-    <div class="title">{{ page.manga | default: page.title | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}</div>
-    <div class="spacer"></div>
-    <div class="toolbar">
-      <div id="pager" class="pager">Pag 0 / 0</div>
-      <button id="copyLink" class="btn">Copiar enlace</button>
-      <button id="copyJson" class="btn">Copiar JSON</button>
-    </div>
-  </header>
-
-  <h1 style="display:none">{{ page.manga | default: page.title | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}</h1>
-  <div id="reader"></div>
-
-  <!-- Botones de navegación (SIN CAMBIOS) -->
-  <div class="nav-buttons">
-    {% if page.capitulo and page.capitulo > 1 %}
-      <a href="{{ site.baseurl }}/{{ page.manga_slug | default: '' }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
-    {% else %}
-      <span></span>
-    {% endif %}
-    {% if page.es_ultimo != true %}
-      <a href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
-    {% endif %}
+<header class="topbar">
+  <div class="title">
+    {{ page.manga | default: page.title | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}
   </div>
+  <div class="spacer"></div>
+  <div class="toolbar">
+    <div id="pager" class="pager">Pag 0 / 0</div>
+  </div>
+</header>
 
-  <!-- Botón de regresar (SIN CAMBIOS) -->
-  <a class="back-button" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
+<div id="reader"></div>
 
-  <div id="toast" class="toast">Copiado</div>
+<div class="nav-buttons">
+  {% if page.capitulo and page.capitulo > 1 %}
+    <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug | default: '' }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
+  {% else %}
+    <span></span>
+  {% endif %}
 
-  <!-- Lógica del lector -->
-  <script type="module">
-    // ===== Helpers =====
-    function withBase(url) {
-      const base = '{{ site.baseurl }}';
-      if (!url) return '';
-      if (/^https?:\/\//i.test(url)) return url;
-      if (base && url.startsWith(base)) return url;
-      if (url.startsWith('/')) return base + url;
-      return base + '/' + url.replace(/^\.?\//,'');
-    }
+  {% if page.es_ultimo != true %}
+    <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
+  {% endif %}
+</div>
 
-    async function loadJSON(path) {
-      const res = await fetch(path, { cache: "no-cache" });
-      if (!res.ok) throw new Error(`HTTP ${res.status} al cargar ${path}`);
-      return await res.json();
-    }
+<a class="back" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
 
-    function normalizeChapterJson(data) {
-      // 1) Arreglo simple -> {pages:[{url,name}]}
-      if (Array.isArray(data)) {
-        const pages = data.map((url) => {
-          const name = (url.split("/").pop() || "").split("?")[0] || "page";
-          return { url, name };
-        });
-        return { title: "", chapter: "", base: "url", pages };
-      }
-      // 2) Formato extendido {pages:[{url|id,name,w,h}]}
-      if (data && Array.isArray(data.pages)) return data;
-      throw new Error("Formato de images.json no reconocido");
-    }
+<script type="module">
+async function load() {
+  const container = document.getElementById("reader");
+  const pager = document.getElementById("pager");
 
-    function driveViewUrl(fileId) {
-      return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`;
-    }
-    function driveThumbUrl(fileId, width = 1600) {
-      return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${width}`;
-    }
-    function sortByName(a, b) {
-      return (a.name||'').localeCompare((b.name||''), undefined, { numeric: true, sensitivity: "base" });
-    }
+  const jsonUrl = "{{ page.images_json }}";
+  if (!jsonUrl) {
+    container.innerHTML = '<p class="error">Falta el campo images_json en este capítulo.</p>';
+    return;
+  }
 
-    function showToast(msg = "Copiado") {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 1200);
-    }
+  try {
+    const res = await fetch(jsonUrl);
+    if (!res.ok) throw new Error(res.status);
+    const images = await res.json();
 
-    // ===== Orígenes posibles del JSON =====
-    // A) Definido en la página Jekyll: page.images_json
-    // B) Query params: ?manga=ririsa&cap=cap1  -> assets/mangas/ririsa/cap1/images.json
-    const params = new URLSearchParams(location.search);
-    const mangaQP = params.get('manga');
-    const capQP   = params.get('cap');
+    pager.textContent = `Pag 1 / ${images.length}`;
 
-    const jsonFromPage = "{{ page.images_json | default: '' }}".trim();
-    const jsonURL = jsonFromPage
-      ? withBase(jsonFromPage)
-      : (mangaQP && capQP ? withBase(`assets/mangas/${mangaQP}/${capQP}/images.json`) : "");
+    images.forEach((src, i) => {
+      const fig = document.createElement("figure");
+      fig.className = "page";
 
-    const readerEl = document.getElementById('reader');
-    const pagerEl  = document.getElementById('pager');
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = `Capítulo - ${i + 1}`;
+      img.onload = () => {
+        pager.textContent = `Pag ${i + 1} / ${images.length}`;
+      };
 
-    // Botones copiar
-    const btnCopyLink = document.getElementById('copyLink');
-    const btnCopyJson = document.getElementById('copyJson');
-
-    btnCopyLink.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(location.href);
-        showToast("Enlace copiado");
-      } catch { showToast("No se pudo copiar"); }
+      fig.appendChild(img);
+      container.appendChild(fig);
     });
 
-    btnCopyJson.addEventListener('click', async () => {
-      try {
-        if (!jsonURL) throw new Error();
-        await navigator.clipboard.writeText(jsonURL);
-        showToast("Ruta JSON copiada");
-      } catch { showToast("No se pudo copiar JSON"); }
-    });
+  } catch (e) {
+    container.innerHTML = `<p class="error">Error al cargar JSON: ${e}</p>`;
+  }
+}
 
-    if (!jsonURL) {
-      readerEl.innerHTML = '<div class="error">No se encontró la ruta del JSON (define page.images_json o usa ?manga=&cap=).</div>';
-    } else {
-      init(jsonURL).catch(err => {
-        readerEl.innerHTML = '<div class="error">No se pudieron cargar las imágenes. ' + err.message + '</div>';
-      });
-    }
-
-    async function init(path) {
-      const raw = await loadJSON(path);
-      const data = normalizeChapterJson(raw);
-
-      // Orden por nombre si existe
-      if (data.pages[0]?.name) data.pages.sort(sortByName);
-
-      const frag = document.createDocumentFragment();
-      const items = [];
-
-      data.pages.forEach((p, idx) => {
-        // Construir URL efectiva
-        let src = '';
-        if (p.url) {
-          // Mejor para <img> que "download"
-          src = p.url.replace('export=download', 'export=view');
-        } else if (p.id) {
-          // Soporte id de Drive: thumb rápido y fallback a view
-          src = driveThumbUrl(p.id, 1600);
-        } else {
-          return; // nada que mostrar
-        }
-
-        const fig = document.createElement('figure');
-        fig.className = 'page';
-
-        const img = document.createElement('img');
-        img.loading = 'lazy';
-        img.decoding = 'async';
-        img.src = src;
-        img.alt = `${(data.title||data.chapter||capQP||'Capítulo')} - ${p.name || (idx+1)}`;
-
-        // Fallback a /view si el thumbnail falla
-        if (!p.url && p.id) {
-          img.addEventListener('error', () => { img.src = driveViewUrl(p.id); }, { once: true });
-        }
-
-        // Tamaños para evitar saltos (si existen)
-        if (p.w && p.h) {
-          img.width = p.w; img.height = p.h;
-          img.style.aspectRatio = `${p.w}/${p.h}`;
-        }
-
-        const fc = document.createElement('figcaption');
-        fc.textContent = `${idx + 1}`;
-
-        fig.appendChild(img);
-        fig.appendChild(fc);
-        frag.appendChild(fig);
-        items.push(fig);
-      });
-
-      readerEl.innerHTML = '';
-      readerEl.appendChild(frag);
-
-      if (!items.length) {
-        readerEl.innerHTML = '<div class="error">No se encontraron imágenes válidas.</div>';
-        pagerEl.textContent = 'Pag 0 / 0';
-        return;
-      }
-
-      // ===== Contador de página en vivo =====
-      pagerEl.textContent = `Pag 1 / ${items.length}`;
-      const io = new IntersectionObserver((entries) => {
-        // El más visible manda
-        const visible = entries
-          .filter(e => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible) {
-          const index = items.indexOf(visible.target);
-          pagerEl.textContent = `Pag ${index + 1} / ${items.length}`;
-        }
-      }, { root: null, rootMargin: '0px 0px -40% 0px', threshold: [0.1, 0.25, 0.5, 0.75] });
-
-      items.forEach(el => io.observe(el));
-    }
-  </script>
-</body>
-</html>
+load();
+</script>
