@@ -35,7 +35,8 @@ async function load() {
   const container = document.getElementById("reader");
   const pager = document.getElementById("pager");
 
-  const jsonUrl = "{{ page.images_json }}";
+  const BASE = "{{ site.baseurl }}";               // => "/pruebaPAG.github.io"
+  const jsonUrl = BASE + "{{ page.images_json }}"; // images_json debe empezar con "/"
   if (!jsonUrl) {
     container.innerHTML = '<p class="error">Falta el campo images_json en este capítulo.</p>';
     return;
