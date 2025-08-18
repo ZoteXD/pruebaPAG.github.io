@@ -5,7 +5,7 @@ capitulo: 1
 es_ultimo: false
 manga_slug: saneka
 permalink: /saneka/cap1/
-images_json: /assets/mangas/saneka/cap1/images.json
+images_json: https://drive.google.com/uc?export=view&id=1ZFzPXp3xDHE_J2nlxfM-Iy6R5BClf_nL
 return_to: /saneka/
 redirect_from:
   - /cap1-saneka/
