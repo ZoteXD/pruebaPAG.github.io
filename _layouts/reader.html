@@ -15,82 +15,41 @@
       <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
     {% endif %}
 
-    <!-- Ajustes extra para nitidez en pantallas grandes -->
     <style>
-      .reader {
-        width: 100%;
-        margin: 0;
-        padding: 0;
+      /* Fullscreen: ocupa todo el ancho del viewport */
+      .reader { width: 100%; margin: 0; padding: 0; }
+      .reader .page { margin: 0; }
+
+      .reader .page img{
+        display:block;
+        width:100%;     /* ancho completo */
+        height:auto;    /* mantiene proporción */
+        max-width:100%; /* no excede el viewport */
+        image-rendering:auto;
       }
 
-      .reader .page {
-        margin: 0;
+      /* Contador flotante */
+      #pager{
+        position:fixed;
+        top:12px; right:16px;
+        background:rgba(0,0,0,.6);
+        color:#fff;
+        padding:4px 8px;
+        border-radius:6px;
+        font-size:14px;
+        z-index:9999;
       }
 
-      #pager {
-        position: fixed;
-        top: 12px;
-        right: 16px;
-        background: rgba(0,0,0,0.6);
-        color: #fff;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 14px;
-        z-index: 9999;
-      }
+      .topbar{ display:flex; align-items:center; gap:12px; margin:12px 0 16px 0; }
+      .topbar .title{ font-weight:700; }
+      .topbar .spacer{ flex:1; }
+      .pager{ opacity:.7; font-variant-numeric:tabular-nums; }
 
-      .reader .page img {
-        display: block;
-        width: 100%;     /* ocupa todo el ancho disponible */
-        height: auto;    /* mantiene la proporción */
-        max-width: 100%; /* nunca más grande que el viewport */
-      }
+      .nav-buttons{ display:flex; justify-content:space-between; margin:16px 0; }
+      .nav-buttons .btn{ display:inline-block; padding:8px 12px; border-radius:8px; text-decoration:none; border:1px solid #ccc; }
+      .back{ display:inline-block; margin-bottom:24px; }
 
-      .reader .page img {
-        display: block;
-        height: auto;
-        max-width: 100%; /* escala hacia abajo si el contenedor es menor */
-        width: auto;     /* no escales por encima del tamaño natural */
-        image-rendering: auto;
-      }
-
-      .reader .page figcaption {
-        text-align: center;
-        opacity: .6;
-        font-size: .9rem;
-        margin-top: 6px;
-      }
-
-      .reader .page .error {
-        color: #c33;
-        font-weight: 600;
-        margin-bottom: 8px;
-      }
-
-      .topbar {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 12px 0 16px 0;
-      }
-      .topbar .title { font-weight: 700; }
-      .topbar .spacer { flex: 1; }
-      .pager { opacity: .7; font-variant-numeric: tabular-nums; }
-
-      .nav-buttons {
-        display: flex;
-        justify-content: space-between;
-        margin: 16px 0;
-      }
-      .nav-buttons .btn {
-        display: inline-block;
-        padding: 8px 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        border: 1px solid #ccc;
-      }
-
-      .back { display: inline-block; margin-bottom: 24px; }
+      .error{ color:#c33; font-weight:600; margin:8px 0; }
     </style>
   </head>
 
@@ -114,8 +73,6 @@
 
     <!-- Contenido del lector -->
     <div id="main" role="main" class="container">
-
-      <!-- Barra con título y pager -->
       <header class="topbar">
         <div class="title">
           {{ page.manga | default: page.title | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}
@@ -124,23 +81,19 @@
         <div id="pager" class="pager">Pag 0 / 0</div>
       </header>
 
-      <!-- Contenedor de imágenes -->
       <div id="reader" class="reader"></div>
 
-      <!-- Botones de navegación -->
       <div class="nav-buttons">
         {% if page.capitulo and page.capitulo > 1 %}
           <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
         {% else %}
           <span></span>
         {% endif %}
-
         {% if page.es_ultimo != true %}
           <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
         {% endif %}
       </div>
 
-      <!-- Regresar al post -->
       <a class="back" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
     </div>
 
@@ -154,211 +107,188 @@
 
     {% include analytics.html %}
 
-  <script>
-  (async () => {
-    const BASE = '{{ site.baseurl }}';
-    const RAW  = ('{{ page.images_json }}' || '').trim();
+<script>
+(async () => {
+  const BASE = '{{ site.baseurl }}';
+  const RAW  = ('{{ page.images_json }}' || '').trim();
 
-    // Resuelve URL del JSON (absoluta o relativa al sitio)
-    const JSON_URL = /^https?:\/\//i.test(RAW)
-      ? RAW
-      : (BASE + (RAW.startsWith('/') ? RAW : '/' + RAW));
+  // URL del JSON (absoluta o relativa)
+  const JSON_URL = /^https?:\/\//i.test(RAW)
+    ? RAW
+    : (BASE + (RAW.startsWith('/') ? RAW : '/' + RAW));
 
-    const mount   = document.getElementById('reader');
-    const pagerEl = document.getElementById('pager');
+  const mount   = document.getElementById('reader');
+  const pagerEl = document.getElementById('pager');
 
-    // ---------- Helpers ----------
-    const withBase = (u) => /^https?:\/\//i.test(u) ? u : (BASE + (u.startsWith('/') ? u : '/' + u));
+  const withBase = (u) => /^https?:\/\//i.test(u) ? u : (BASE + (u.startsWith('/') ? u : '/' + u));
 
-    // Normaliza drive a usercontent+download (mejor para <img>)
-    function normalizeGoogleUrl(u){
-      if (!u) return '';
-      // drive.google.com -> usercontent (download)
-      u = u.replace(
-        /^https:\/\/drive\.google\.com\/uc\?export=(?:view|download)&id=([^&]+).*$/i,
-        'https://drive.usercontent.google.com/uc?id=$1&export=download'
+  function normalizeGoogleUrl(u){
+    if (!u) return '';
+    u = u.replace(
+      /^https:\/\/drive\.google\.com\/uc\?export=(?:view|download)&id=([^&]+).*$/i,
+      'https://drive.usercontent.google.com/uc?id=$1&export=download'
+    );
+    u = u.replace(
+      /(drive\.usercontent\.google\.com\/uc\?[^#]*?)export=view/i,
+      '$1export=download'
+    );
+    return u;
+  }
+
+  function extractDriveId(u){
+    if (!u) return '';
+    let m = u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+    if (m) return m[1];
+    m = u.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/);
+    if (m) return m[1];
+    m = u.match(/\/open\?id=([a-zA-Z0-9_-]{10,})/);
+    if (m) return m[1];
+    return '';
+  }
+
+  function candidatesFrom(p){
+    const tries = [];
+    const u0 = normalizeGoogleUrl(String(p.url || ''));
+    const id = p.id || extractDriveId(u0);
+
+    if (id) {
+      tries.push(
+        `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w2560`, // thumb grande
+        `https://drive.usercontent.google.com/uc?id=${encodeURIComponent(id)}&export=download`, // full
+        `https://drive.google.com/uc?export=view&id=${encodeURIComponent(id)}` // fallback
       );
-      // si ya es usercontent pero viene con view -> download
-      u = u.replace(
-        /(drive\.usercontent\.google\.com\/uc\?[^#]*?)export=view/i,
-        '$1export=download'
-      );
-      return u;
     }
+    if (u0) tries.push(u0);
+    return [...new Set(tries)];
+  }
 
-    // Extrae fileId de varias formas de URL de Drive
-    function extractDriveId(u){
-      if (!u) return '';
-      let m = u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/); // ...uc?export=*&id=FILEID
-      if (m) return m[1];
-      m = u.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/); // .../file/d/FILEID/...
-      if (m) return m[1];
-      m = u.match(/\/open\?id=([a-zA-Z0-9_-]{10,})/); // .../open?id=FILEID
-      if (m) return m[1];
-      return '';
-    }
+  try {
+    const res = await fetch(JSON_URL, { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
 
-    // Genera candidatos con orden: thumbnail (grande) -> full (usercontent) -> view -> (URL del JSON normalizada)
-    function candidatesFrom(p){
-      const tries = [];
-      const u0 = normalizeGoogleUrl(String(p.url || ''));
-      const id = p.id || extractDriveId(u0);
+    const pages = Array.isArray(data)
+      ? data.map(u => ({ url: u }))
+      : (Array.isArray(data.pages) ? data.pages : []);
 
-      if (id) {
-        tries.push(
-          `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w2560`, // thumb más grande
-          `https://drive.usercontent.google.com/uc?id=${encodeURIComponent(id)}&export=download`, // full
-          `https://drive.google.com/uc?export=view&id=${encodeURIComponent(id)}` // fallback
-        );
-      }
-      if (u0) tries.push(u0); // deja la URL original al final
+    if (!pages.length) throw new Error('JSON vacío o formato no soportado');
 
-      // Quita duplicados
-      return [...new Set(tries)];
-    }
-    // --------------------------------
+    pages.sort((a, b) => {
+      const A = parseInt((String(a.name || a.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
+      const B = parseInt((String(b.name || b.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
+      return A - B;
+    });
 
-    try {
-      const res = await fetch(JSON_URL, { cache: 'no-cache' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
+    const items = pages.map((p, i) => {
+      const fig = document.createElement('figure');
+      fig.className = 'page';
 
-      // Acepta array simple o {pages:[...]}
-      const pages = Array.isArray(data)
-        ? data.map(u => ({ url: u }))
-        : (Array.isArray(data.pages) ? data.pages : []);
+      const img = document.createElement('img');
+      img.alt = `Página ${i + 1}`;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+      img.sizes = '100vw'; // fullscreen
 
-      if (!pages.length) throw new Error('JSON vacío o formato no soportado');
+      fig.appendChild(img); // ← SIN figcaption
 
-      // Orden por primer número
-      pages.sort((a, b) => {
-        const A = parseInt((String(a.name || a.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
-        const B = parseInt((String(b.name || b.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
-        return A - B;
-      });
+      return { fig, img, tries: candidatesFrom(p), index: i };
+    });
 
-      // Pre-render
-      const items = pages.map((p, i) => {
-        const fig = document.createElement('figure');
-        fig.className = 'page';
+    const frag = document.createDocumentFragment();
+    items.forEach(it => frag.appendChild(it.fig));
+    mount.textContent = '';
+    mount.appendChild(frag);
 
-        const img = document.createElement('img');
-        img.alt = `Página ${i + 1}`;
-        img.loading = 'lazy';
-        img.decoding = 'async';
-        img.referrerPolicy = 'no-referrer';
-        // sizes por defecto (se refuerza luego en upgrade a full)
-        img.sizes = '(max-width: 1200px) 100vw, 1200px';
+    pagerEl.textContent = `Pag ${items.length ? 1 : 0} / ${items.length}`;
 
-        //const cap = document.createElement('figcaption');
-        //cap.textContent = String(i + 1);
-
-        fig.appendChild(img);
-        fig.appendChild(cap);
-
-        return { fig, img, tries: candidatesFrom(p), index: i };
-      });
-
-      const frag = document.createDocumentFragment();
-      items.forEach(it => frag.appendChild(it.fig));
-      mount.textContent = '';
-      mount.appendChild(frag);
-
-      pagerEl.textContent = `Pag ${items.length ? 1 : 0} / ${items.length}`;
-
-      // Pager dinámico
-      if ('IntersectionObserver' in window) {
-        const io = new IntersectionObserver((entries) => {
-          const vis = entries.filter(e => e.isIntersecting)
-                             .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
-          if (vis) {
-            const idx = items.findIndex(x => x.fig === vis.target);
-            if (idx >= 0) pagerEl.textContent = `Pag ${idx + 1} / ${items.length}`;
-          }
-        }, { root: null, rootMargin: '0px 0px -40% 0px', threshold: [0.2, 0.4, 0.6] });
-        items.forEach(it => io.observe(it.fig));
-      }
-
-      // === Descarga con concurrencia y "thumb-first → upgrade a full" ===
-      const CONCURRENCY = 6;  // sube/baja según rate-limit
-      const INTERVAL_MS = 0;  // pausa entre tareas (0 para máximo rendimiento)
-      let cursor = 0;
-
-      function loadOne(it){
-        return new Promise((resolve) => {
-          const all = it.tries.slice(); // copia: [thumb, full, view, ...]
-          if (!all.length) return resolve();
-
-          const first = withBase(all.shift()); // thumbnail primero
-          let upgraded = false;
-
-          // Cuando cargue lo primero, intenta upgrade a 'full'
-          it.img.onload = () => {
-            // Busca 'full' de forma más tolerante
-            const full = all.find(u =>
-              u.includes('drive.usercontent.google.com/uc') && u.includes('id=')
-            );
-
-            // Pre-carga y cambia a full (además setea srcset 1x/2x)
-            if (full) {
-              const thumb = it.tries.find(u => u.includes('thumbnail?'));
-              const pre = new Image();
-              pre.referrerPolicy = 'no-referrer';
-              pre.onload  = () => {
-                if (!upgraded) {
-                  upgraded = true;
-                  it.img.src = withBase(full);
-                  if (thumb) {
-                    it.img.srcset = `${withBase(thumb)} 1x, ${withBase(full)} 2x`;
-                    it.img.sizes  = '(max-width: 1200px) 100vw, 1200px';
-                  }
-                }
-                resolve();
-              };
-              pre.onerror = () => resolve();
-              pre.src = withBase(full);
-            } else {
-              resolve();
-            }
-          };
-
-          // Si falla el primer intento, encadena el resto (view / original)
-          const next = () => {
-            if (!all.length) {
-              const warn = document.createElement('div');
-              warn.className = 'error';
-              warn.textContent = `⚠️ No se pudo cargar la página ${it.index + 1}`;
-              it.fig.insertBefore(warn, it.fig.firstChild);
-              return resolve();
-            }
-            const u = withBase(all.shift());
-            it.img.onerror = next;
-            it.img.onload  = resolve;
-            it.img.src = u;
-          };
-
-          it.img.onerror = next;
-          it.img.src = first; // dispara thumbnail
-        });
-      }
-
-      async function worker(){
-        while (true) {
-          const i = cursor++;
-          if (i >= items.length) break;
-          await loadOne(items[i]);
-          if (INTERVAL_MS) await new Promise(r => setTimeout(r, INTERVAL_MS));
+    // Contador dinámico (solo en el flotante #pager)
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        const vis = entries.filter(e => e.isIntersecting)
+                           .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (vis) {
+          const idx = items.findIndex(x => x.fig === vis.target);
+          if (idx >= 0) pagerEl.textContent = `Pag ${idx + 1} / ${items.length}`;
         }
-      }
-
-      await Promise.all(Array.from({length: CONCURRENCY}, worker));
-      // ===============================================================
-
-    } catch (err) {
-      mount.innerHTML = `<p class="error">No se pudieron cargar las imágenes. ${err.message}</p>`;
-      pagerEl.textContent = 'Pag 0 / 0';
+      }, { root: null, rootMargin: '0px 0px -40% 0px', threshold: [0.2, 0.4, 0.6] });
+      items.forEach(it => io.observe(it.fig));
     }
-  })();
-  </script>
+
+    // Descarga con concurrencia y upgrade a full
+    const CONCURRENCY = 6;
+    const INTERVAL_MS = 0;
+    let cursor = 0;
+
+    function loadOne(it){
+      return new Promise((resolve) => {
+        const all = it.tries.slice();
+        if (!all.length) return resolve();
+
+        const first = withBase(all.shift()); // thumb primero
+        let upgraded = false;
+
+        it.img.onload = () => {
+          const full = all.find(u =>
+            u.includes('drive.usercontent.google.com/uc') && u.includes('id=')
+          );
+          if (full) {
+            const thumb = it.tries.find(u => u.includes('thumbnail?'));
+            const pre = new Image();
+            pre.referrerPolicy = 'no-referrer';
+            pre.onload  = () => {
+              if (!upgraded) {
+                upgraded = true;
+                it.img.src = withBase(full);
+                if (thumb) {
+                  it.img.srcset = `${withBase(thumb)} 1x, ${withBase(full)} 2x`;
+                  it.img.sizes  = '100vw'; // fullscreen
+                }
+              }
+              resolve();
+            };
+            pre.onerror = () => resolve();
+            pre.src = withBase(full);
+          } else {
+            resolve();
+          }
+        };
+
+        const next = () => {
+          if (!all.length) {
+            const warn = document.createElement('div');
+            warn.className = 'error';
+            warn.textContent = `⚠️ No se pudo cargar la página ${it.index + 1}`;
+            it.fig.insertBefore(warn, it.fig.firstChild);
+            return resolve();
+          }
+          const u = withBase(all.shift());
+          it.img.onerror = next;
+          it.img.onload  = resolve;
+          it.img.src = u;
+        };
+
+        it.img.onerror = next;
+        it.img.src = first;
+      });
+    }
+
+    async function worker(){
+      while (true) {
+        const i = cursor++;
+        if (i >= items.length) break;
+        await loadOne(items[i]);
+        if (INTERVAL_MS) await new Promise(r => setTimeout(r, INTERVAL_MS));
+      }
+    }
+
+    await Promise.all(Array.from({length: CONCURRENCY}, worker));
+
+  } catch (err) {
+    mount.innerHTML = `<p class="error">No se pudieron cargar las imágenes. ${err.message}</p>`;
+    pagerEl.textContent = 'Pag 0 / 0';
+  }
+})();
+</script>
   </body>
 </html>
