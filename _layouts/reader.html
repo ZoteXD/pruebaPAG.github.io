@@ -16,7 +16,41 @@
     {% endif %}
 
     <style>
+      /* Estilos específicos para el lector */
+      .wrapper-masthead { display: none; }
+
       :root { --navH: 56px; }
+
+      /* Hero del reader */
+      .reader-hero{
+        text-align:center;
+        padding: 24px 12px 8px;
+      }
+      .reader-title{
+        margin:0;
+        font-weight: 800;
+        line-height: 1.1;
+        /* tamaño fluido */
+        font-size: clamp(28px, 4.5vw, 48px);
+      }
+      .reader-sub{
+        margin-top: 6px;
+        opacity: .85;
+        font-size: clamp(16px, 2.4vw, 22px);
+      }
+
+      /* El contador sigue flotante en la esquina */
+      #pager{
+        position: fixed;
+        top: 12px; right: 16px;
+        background: rgba(0,0,0,.6);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 14px;
+        z-index: 9999;
+      }
+
 
       /* Fullscreen */
       .reader { width: 100%; margin: 0; padding: 0; }
@@ -85,14 +119,16 @@
     </div>
 
     <!-- Contenido del lector -->
-    <div id="main" role="main" class="container">
-      <header class="topbar">
-        <div class="title">
-          {{ page.manga | default: page.title | default: "Manga" }} - Capítulo {{ page.capitulo | default: "?" }}
-        </div>
-        <div class="spacer"></div>
-        <div id="pager" class="pager">Pag 0 / 0</div>
-      </header>
+    <header class="reader-hero">
+      <h1 class="reader-title">
+        {{ page.manga | default: page.title | default: "Manga" }}
+      </h1>
+      <div class="reader-sub">
+        Capítulo {{ page.capitulo | default: "?" }}
+      </div>
+      <div id="pager" class="pager">Pag 0 / 0</div>
+    </header>
+
 
       <div id="reader" class="reader"></div>
 
