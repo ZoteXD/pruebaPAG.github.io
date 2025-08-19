@@ -8,7 +8,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>{{ page.title | escape }}</title>
-
+me 
     {% if page.use_main_css %}
       <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css">
     {% else %}
@@ -16,12 +16,21 @@
     {% endif %}
 
     <style>
-      /* Estilos específicos para el lector */
+      /* Oculta el masthead del tema solo en el reader */
       .wrapper-masthead { display: none; }
 
       :root { --navH: 56px; }
 
-      /* Hero del reader */
+      /* --- Romper el contenedor del tema y eliminar padding lateral --- */
+      /* (por si el tema aplica .container en algún padre) */
+      #main, .container {
+        max-width: none !important;
+        width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+
+      /* --- Hero del reader (título grande) --- */
       .reader-hero{
         text-align:center;
         padding: 24px 12px 8px;
@@ -30,7 +39,6 @@
         margin:0;
         font-weight: 800;
         line-height: 1.1;
-        /* tamaño fluido */
         font-size: clamp(28px, 4.5vw, 48px);
       }
       .reader-sub{
@@ -39,7 +47,7 @@
         font-size: clamp(16px, 2.4vw, 22px);
       }
 
-      /* El contador sigue flotante en la esquina */
+      /* --- Contador flotante --- */
       #pager{
         position: fixed;
         top: 12px; right: 16px;
@@ -51,28 +59,32 @@
         z-index: 9999;
       }
 
+      /* --- Reader fullscreen + centrado --- */
+      .reader {
+        width: 100%;
+        margin: 0;
+        padding: 0;
 
-      /* Fullscreen */
-      .reader { width: 100%; margin: 0; padding: 0; }
-      .reader .page { margin: 0; }
+        /* centra todo el flujo de páginas */
+        display: flex;
+        flex-direction: column;
+        align-items: center;    /* <— clave para centrar en monitores anchos */
+      }
+      .reader .page {
+        width: 100%;
+        margin: 0 auto;
+        /* Si NO quieres borde a borde en ultra‑wide, descomenta:
+          max-width: 1600px;
+        */
+      }
       .reader .page img{
-        display:block; width:100%; height:auto; max-width:100%;
+        display:block;
+        width:100%;
+        height:auto;
+        max-width:100%;
       }
 
-      /* Contador flotante */
-      #pager{
-        position:fixed; top:12px; right:16px;
-        background:rgba(0,0,0,.6); color:#fff;
-        padding:4px 8px; border-radius:6px; font-size:14px; z-index:9999;
-      }
-
-      /* Topbar simple (título) */
-      .topbar{ display:flex; align-items:center; gap:12px; margin:12px 0 16px 0; }
-      .topbar .title{ font-weight:700; }
-      .topbar .spacer{ flex:1; }
-      .pager{ opacity:.7; font-variant-numeric:tabular-nums; }
-
-      /* NAV FIJA (arriba o abajo) */
+      /* --- NAV FIJA (arriba o abajo) --- */
       .nav-fixed{
         position:fixed; left:0; right:0; z-index:10000;
         display:flex; gap:12px; justify-content:center; align-items:center;
