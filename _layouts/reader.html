@@ -17,19 +17,33 @@
 
     <!-- Ajustes extra para nitidez en pantallas grandes -->
     <style>
-      /* Limita el ancho del lector para que no se estire de más en monitores anchos */
       .reader {
-        max-width: 1200px;   /* ajusta 1100–1400 según tu resolución original */
-        margin: 0 auto;
-        padding: 0 12px;
+        width: 100%;
+        margin: 0;
+        padding: 0;
       }
 
-      /* Centra cada página y evita estirar más allá de su tamaño natural */
       .reader .page {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        margin: 0 auto 12px auto;
+        margin: 0;
+      }
+
+      #pager {
+        position: fixed;
+        top: 12px;
+        right: 16px;
+        background: rgba(0,0,0,0.6);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 14px;
+        z-index: 9999;
+      }
+
+      .reader .page img {
+        display: block;
+        width: 100%;     /* ocupa todo el ancho disponible */
+        height: auto;    /* mantiene la proporción */
+        max-width: 100%; /* nunca más grande que el viewport */
       }
 
       .reader .page img {
@@ -236,8 +250,8 @@
         // sizes por defecto (se refuerza luego en upgrade a full)
         img.sizes = '(max-width: 1200px) 100vw, 1200px';
 
-        const cap = document.createElement('figcaption');
-        cap.textContent = String(i + 1);
+        //const cap = document.createElement('figcaption');
+        //cap.textContent = String(i + 1);
 
         fig.appendChild(img);
         fig.appendChild(cap);
