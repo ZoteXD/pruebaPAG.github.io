@@ -59,29 +59,28 @@ me
         z-index: 9999;
       }
 
-      /* --- Reader fullscreen + centrado --- */
       .reader {
         width: 100%;
         margin: 0;
         padding: 0;
 
-        /* centra todo el flujo de páginas */
         display: flex;
         flex-direction: column;
-        align-items: center;    /* <— clave para centrar en monitores anchos */
+        align-items: center;
       }
+
       .reader .page {
         width: 100%;
+        max-width: 1000px;
         margin: 0 auto;
-        /* Si NO quieres borde a borde en ultra‑wide, descomenta:
-          max-width: 1600px;
-        */
       }
-      .reader .page img{
-        display:block;
-        width:100%;
-        height:auto;
-        max-width:100%;
+
+      .reader .page img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+        margin: 0 auto;
       }
 
       /* --- NAV FIJA (arriba o abajo) --- */
