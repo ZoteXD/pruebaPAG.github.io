@@ -8,7 +8,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>{{ page.title | escape }}</title>
-me 
+
     {% if page.use_main_css %}
       <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css">
     {% else %}
@@ -17,136 +17,80 @@ me
 
     <style>
       /* Oculta el masthead del tema solo en el reader */
-      .wrapper-masthead { display: none; }
+      .wrapper-masthead{display:none;}
 
-      :root { --navH: 56px; }
+      :root{ --navH:56px; --pageW: 1400px; } /* Ajusta --pageW (p. ej. 1200/1600px) */
 
-      /* --- Romper el contenedor del tema y eliminar padding lateral --- */
-      /* (por si el tema aplica .container en algún padre) */
-      #main, .container {
-        max-width: none !important;
-        width: 100% !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
+      /* Quita límites del tema y padding */
+      html,body{ margin:0 !important; }
+      #main, .container{
+        max-width:none !important;
+        width:100% !important;
+        padding-left:0 !important;
+        padding-right:0 !important;
       }
 
-      /* --- Hero del reader (título grande) --- */
-      .reader-hero{
-        text-align:center;
-        padding: 24px 12px 8px;
-      }
-      .reader-title{
-        margin:0;
-        font-weight: 800;
-        line-height: 1.1;
-        font-size: clamp(28px, 4.5vw, 48px);
-      }
-      .reader-sub{
-        margin-top: 6px;
-        opacity: .85;
-        font-size: clamp(16px, 2.4vw, 22px);
-      }
+      /* Hero (título grande) */
+      .reader-hero{ text-align:center; padding:24px 12px 8px; }
+      .reader-title{ margin:0; font-weight:800; line-height:1.1; font-size:clamp(28px,4.5vw,48px); }
+      .reader-sub{ margin-top:6px; opacity:.85; font-size:clamp(16px,2.4vw,22px); }
 
-      /* --- Contador flotante --- */
+      /* Contador flotante */
       #pager{
-        position: fixed;
-        top: 12px; right: 16px;
-        background: rgba(0,0,0,.6);
-        color: #fff;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 14px;
-        z-index: 9999;
+        position:fixed; top:12px; right:16px; z-index:9999;
+        background:rgba(0,0,0,.6); color:#fff; padding:4px 8px; border-radius:6px; font-size:14px;
       }
 
-      .reader {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+      /* Reader centrado */
+      .reader{ display:block; width:100%; margin:0; padding:0; }
+      .reader .page{
+        width:min(100vw, var(--pageW));  /* Ancho visual máximo de cada página */
+        margin:0 auto;                   /* Centrado real */
+      }
+      .reader .page img{
+        display:block; width:100%; height:auto; max-width:100%;
       }
 
-      .reader .page {
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-      }
-
-      .reader .page img {
-        display: block;
-        width: 100%;
-        height: auto;
-        max-width: 100%;
-        margin: 0 auto;
-      }
-
-      /* --- NAV FIJA (arriba o abajo) --- */
+      /* Barra de navegación fija (abajo por defecto) */
       .nav-fixed{
-        position:fixed; left:0; right:0; z-index:10000;
+        position:fixed; left:0; right:0; z-index:10000; height:var(--navH);
         display:flex; gap:12px; justify-content:center; align-items:center;
-        height:var(--navH);
-        padding:8px 12px;
-        background:rgba(30,30,30,.75);
-        backdrop-filter: blur(6px);
+        padding:8px 12px; background:rgba(30,30,30,.75); backdrop-filter:blur(6px);
       }
       .nav-fixed.bottom{ bottom:0; }
+      body.has-nav-bottom{ padding-bottom:var(--navH); }
       .nav-fixed.top{ top:0; }
+      body.has-nav-top{ padding-top:var(--navH); }
 
-      /* espacio para que no tape contenido */
-      body.has-nav-bottom { padding-bottom: var(--navH); }
-      body.has-nav-top    { padding-top: var(--navH); }
+      .btn{ display:inline-block; padding:8px 14px; border-radius:10px; text-decoration:none;
+            border:1px solid #bbb; background:#fff; color:#111; font-weight:600; }
+      .btn.dark{ background:#222; color:#fff; border-color:#444; }
 
-      .btn{
-        display:inline-block; padding:8px 14px; border-radius:10px;
-        text-decoration:none; border:1px solid #bbb; background:#fff; color:#111;
-        font-weight:600;
-      }
-      .btn.dark{
-        background:#222; color:#fff; border-color:#444;
-      }
-
-      .back{ display:none; } /* ocultamos el link suelto; ya va en la barra fija */
+      .back{ display:none; } /* ya lo reemplaza la barra fija */
       .error{ color:#c33; font-weight:600; margin:8px 0; }
     </style>
   </head>
 
-  <!-- Usa has-nav-bottom (barra abajo) o has-nav-top (barra arriba) -->
+  <!-- Usa has-nav-bottom (barra fija abajo) o has-nav-top (arriba) -->
   <body class="has-nav-bottom{% if page.use_main_css %} theme{% endif %}">
-    <!-- Encabezado: SIN el nav con Inicio/About -->
-    <div class="wrapper-masthead">
-      <div class="container">
-        <header class="masthead clearfix">
-          <a href="{{ site.baseurl }}/" class="site-avatar"><img src="{{ site.avatar }}" /></a>
-          <div class="site-info">
-            <h1 class="site-name"><a href="{{ site.baseurl }}/">{{ site.name }}</a></h1>
-            <p class="site-description">{{ site.description }}</p>
-          </div>
-          <!-- nav eliminado -->
-        </header>
-      </div>
-    </div>
 
-    <!-- Contenido del lector -->
-    <header class="reader-hero">
-      <h1 class="reader-title">
-        {{ page.manga | default: page.title | default: "Manga" }}
-      </h1>
-      <div class="reader-sub">
-        Capítulo {{ page.capitulo | default: "?" }}
-      </div>
-      <div id="pager" class="pager">Pag 0 / 0</div>
-    </header>
+    <!-- (Masthead oculto para este layout) -->
 
+    <!-- Contenido del lector (wrapper correcto) -->
+    <div id="main" role="main" class="container">
+      <header class="reader-hero">
+        <h1 class="reader-title">{{ page.manga | default: page.title | default: "Manga" }}</h1>
+        <div class="reader-sub">Capítulo {{ page.capitulo | default: "?" }}</div>
+        <div id="pager" class="pager">Pag 0 / 0</div>
+      </header>
 
       <div id="reader" class="reader"></div>
 
-      <!-- Link “regresar” del layout original (oculto). La barra fija lo reemplaza. -->
+      <!-- Link original oculto (la barra fija ya lo incluye) -->
       <a class="back" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
     </div>
 
+    <!-- Footer del tema (lo mantenemos por si lo usas en global) -->
     <div class="wrapper-footer">
       <div class="container">
         <footer class="footer">
@@ -155,18 +99,16 @@ me
       </div>
     </div>
 
-    <!-- BARRA DE NAVEGACIÓN FIJA -->
+    <!-- Barra de navegación fija -->
     <div class="nav-fixed bottom" id="navReader">
       {% if page.capitulo and page.capitulo > 1 %}
         <a class="btn dark" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
       {% else %}
         <span></span>
       {% endif %}
-
       {% if page.es_ultimo != true %}
         <a class="btn dark" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
       {% endif %}
-
       <a class="btn" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
     </div>
 
@@ -177,11 +119,11 @@ me
   const BASE = '{{ site.baseurl }}';
   const RAW  = ('{{ page.images_json }}' || '').trim();
 
-  // Si prefieres la barra fija ARRIBA, cambia clases:
+  // Si prefieres la barra fija ARRIBA, descomenta:
   // document.body.classList.remove('has-nav-bottom'); document.body.classList.add('has-nav-top');
   // document.getElementById('navReader').classList.remove('bottom'); document.getElementById('navReader').classList.add('top');
 
-  // URL del JSON (absoluta o relativa)
+  // URL del JSON (absoluta o relativa al sitio)
   const JSON_URL = /^https?:\/\//i.test(RAW)
     ? RAW
     : (BASE + (RAW.startsWith('/') ? RAW : '/' + RAW));
@@ -212,6 +154,7 @@ me
     return '';
   }
 
+  // Genera candidatos: thumbnail grande -> full -> fallback
   function candidatesFrom(p){
     const tries = [];
     const u0 = normalizeGoogleUrl(String(p.url || ''));
@@ -233,18 +176,21 @@ me
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
 
+    // Acepta array simple o {pages:[...]}
     const pages = Array.isArray(data)
       ? data.map(u => ({ url: u }))
       : (Array.isArray(data.pages) ? data.pages : []);
 
     if (!pages.length) throw new Error('JSON vacío o formato no soportado');
 
+    // Orden por número si existe en name/url
     pages.sort((a, b) => {
       const A = parseInt((String(a.name || a.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
       const B = parseInt((String(b.name || b.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
       return A - B;
     });
 
+    // Render
     const items = pages.map((p, i) => {
       const fig = document.createElement('figure');
       fig.className = 'page';
@@ -267,7 +213,7 @@ me
 
     pagerEl.textContent = `Pag ${items.length ? 1 : 0} / ${items.length}`;
 
-    // Counter flotante
+    // Contador dinámico
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries) => {
         const vis = entries.filter(e => e.isIntersecting)
