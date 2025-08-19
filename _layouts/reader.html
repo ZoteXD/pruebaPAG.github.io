@@ -16,45 +16,61 @@
     {% endif %}
 
     <style>
-      /* Fullscreen: ocupa todo el ancho del viewport */
+      :root { --navH: 56px; }
+
+      /* Fullscreen */
       .reader { width: 100%; margin: 0; padding: 0; }
       .reader .page { margin: 0; }
-
       .reader .page img{
-        display:block;
-        width:100%;     /* ancho completo */
-        height:auto;    /* mantiene proporción */
-        max-width:100%; /* no excede el viewport */
-        image-rendering:auto;
+        display:block; width:100%; height:auto; max-width:100%;
       }
 
       /* Contador flotante */
       #pager{
-        position:fixed;
-        top:12px; right:16px;
-        background:rgba(0,0,0,.6);
-        color:#fff;
-        padding:4px 8px;
-        border-radius:6px;
-        font-size:14px;
-        z-index:9999;
+        position:fixed; top:12px; right:16px;
+        background:rgba(0,0,0,.6); color:#fff;
+        padding:4px 8px; border-radius:6px; font-size:14px; z-index:9999;
       }
 
+      /* Topbar simple (título) */
       .topbar{ display:flex; align-items:center; gap:12px; margin:12px 0 16px 0; }
       .topbar .title{ font-weight:700; }
       .topbar .spacer{ flex:1; }
       .pager{ opacity:.7; font-variant-numeric:tabular-nums; }
 
-      .nav-buttons{ display:flex; justify-content:space-between; margin:16px 0; }
-      .nav-buttons .btn{ display:inline-block; padding:8px 12px; border-radius:8px; text-decoration:none; border:1px solid #ccc; }
-      .back{ display:inline-block; margin-bottom:24px; }
+      /* NAV FIJA (arriba o abajo) */
+      .nav-fixed{
+        position:fixed; left:0; right:0; z-index:10000;
+        display:flex; gap:12px; justify-content:center; align-items:center;
+        height:var(--navH);
+        padding:8px 12px;
+        background:rgba(30,30,30,.75);
+        backdrop-filter: blur(6px);
+      }
+      .nav-fixed.bottom{ bottom:0; }
+      .nav-fixed.top{ top:0; }
 
+      /* espacio para que no tape contenido */
+      body.has-nav-bottom { padding-bottom: var(--navH); }
+      body.has-nav-top    { padding-top: var(--navH); }
+
+      .btn{
+        display:inline-block; padding:8px 14px; border-radius:10px;
+        text-decoration:none; border:1px solid #bbb; background:#fff; color:#111;
+        font-weight:600;
+      }
+      .btn.dark{
+        background:#222; color:#fff; border-color:#444;
+      }
+
+      .back{ display:none; } /* ocultamos el link suelto; ya va en la barra fija */
       .error{ color:#c33; font-weight:600; margin:8px 0; }
     </style>
   </head>
 
-  <body{% if page.use_main_css %} class="theme"{% endif %}>
-    <!-- Encabezado igual a default.html -->
+  <!-- Usa has-nav-bottom (barra abajo) o has-nav-top (barra arriba) -->
+  <body class="has-nav-bottom{% if page.use_main_css %} theme{% endif %}">
+    <!-- Encabezado: SIN el nav con Inicio/About -->
     <div class="wrapper-masthead">
       <div class="container">
         <header class="masthead clearfix">
@@ -63,10 +79,7 @@
             <h1 class="site-name"><a href="{{ site.baseurl }}/">{{ site.name }}</a></h1>
             <p class="site-description">{{ site.description }}</p>
           </div>
-          <nav>
-            <a href="{{ site.baseurl }}/">Inicio</a>
-            <a href="{{ site.baseurl }}/about">About</a>
-          </nav>
+          <!-- nav eliminado -->
         </header>
       </div>
     </div>
@@ -83,17 +96,7 @@
 
       <div id="reader" class="reader"></div>
 
-      <div class="nav-buttons">
-        {% if page.capitulo and page.capitulo > 1 %}
-          <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
-        {% else %}
-          <span></span>
-        {% endif %}
-        {% if page.es_ultimo != true %}
-          <a class="btn" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
-        {% endif %}
-      </div>
-
+      <!-- Link “regresar” del layout original (oculto). La barra fija lo reemplaza. -->
       <a class="back" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
     </div>
 
@@ -105,12 +108,31 @@
       </div>
     </div>
 
+    <!-- BARRA DE NAVEGACIÓN FIJA -->
+    <div class="nav-fixed bottom" id="navReader">
+      {% if page.capitulo and page.capitulo > 1 %}
+        <a class="btn dark" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
+      {% else %}
+        <span></span>
+      {% endif %}
+
+      {% if page.es_ultimo != true %}
+        <a class="btn dark" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
+      {% endif %}
+
+      <a class="btn" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
+    </div>
+
     {% include analytics.html %}
 
 <script>
 (async () => {
   const BASE = '{{ site.baseurl }}';
   const RAW  = ('{{ page.images_json }}' || '').trim();
+
+  // Si prefieres la barra fija ARRIBA, cambia clases:
+  // document.body.classList.remove('has-nav-bottom'); document.body.classList.add('has-nav-top');
+  // document.getElementById('navReader').classList.remove('bottom'); document.getElementById('navReader').classList.add('top');
 
   // URL del JSON (absoluta o relativa)
   const JSON_URL = /^https?:\/\//i.test(RAW)
@@ -128,10 +150,7 @@
       /^https:\/\/drive\.google\.com\/uc\?export=(?:view|download)&id=([^&]+).*$/i,
       'https://drive.usercontent.google.com/uc?id=$1&export=download'
     );
-    u = u.replace(
-      /(drive\.usercontent\.google\.com\/uc\?[^#]*?)export=view/i,
-      '$1export=download'
-    );
+    u = u.replace(/(drive\.usercontent\.google\.com\/uc\?[^#]*?)export=view/i, '$1export=download');
     return u;
   }
 
@@ -153,9 +172,9 @@
 
     if (id) {
       tries.push(
-        `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w2560`, // thumb grande
-        `https://drive.usercontent.google.com/uc?id=${encodeURIComponent(id)}&export=download`, // full
-        `https://drive.google.com/uc?export=view&id=${encodeURIComponent(id)}` // fallback
+        `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w2560`,
+        `https://drive.usercontent.google.com/uc?id=${encodeURIComponent(id)}&export=download`,
+        `https://drive.google.com/uc?export=view&id=${encodeURIComponent(id)}`
       );
     }
     if (u0) tries.push(u0);
@@ -188,10 +207,9 @@
       img.loading = 'lazy';
       img.decoding = 'async';
       img.referrerPolicy = 'no-referrer';
-      img.sizes = '100vw'; // fullscreen
+      img.sizes = '100vw';
 
-      fig.appendChild(img); // ← SIN figcaption
-
+      fig.appendChild(img);
       return { fig, img, tries: candidatesFrom(p), index: i };
     });
 
@@ -202,7 +220,7 @@
 
     pagerEl.textContent = `Pag ${items.length ? 1 : 0} / ${items.length}`;
 
-    // Contador dinámico (solo en el flotante #pager)
+    // Counter flotante
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries) => {
         const vis = entries.filter(e => e.isIntersecting)
@@ -216,8 +234,7 @@
     }
 
     // Descarga con concurrencia y upgrade a full
-    const CONCURRENCY = 6;
-    const INTERVAL_MS = 0;
+    const CONCURRENCY = 6, INTERVAL_MS = 0;
     let cursor = 0;
 
     function loadOne(it){
@@ -242,7 +259,7 @@
                 it.img.src = withBase(full);
                 if (thumb) {
                   it.img.srcset = `${withBase(thumb)} 1x, ${withBase(full)} 2x`;
-                  it.img.sizes  = '100vw'; // fullscreen
+                  it.img.sizes  = '100vw';
                 }
               }
               resolve();
