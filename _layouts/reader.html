@@ -15,6 +15,10 @@
       <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
     {% endif %}
 
+    <!-- Mejora conexión con Google Drive -->
+    <link rel="preconnect" href="https://drive.usercontent.google.com">
+    <link rel="dns-prefetch" href="https://drive.usercontent.google.com">
+
     <style>
       /* Oculta el masthead del tema solo en el reader */
       .wrapper-masthead{display:none;}
@@ -76,7 +80,7 @@
 
     <!-- (Masthead oculto para este layout) -->
 
-    <!-- Contenido del lector (wrapper correcto) -->
+    <!-- Contenido del lector -->
     <div id="main" role="main" class="container">
       <header class="reader-hero">
         <h1 class="reader-title">{{ page.manga | default: page.title | default: "Manga" }}</h1>
@@ -92,7 +96,7 @@
       <a class="back" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
     </div>
 
-    <!-- Footer del tema (lo mantenemos por si lo usas en global) -->
+    <!-- Footer del tema -->
     <div class="wrapper-footer">
       <div class="container">
         <footer class="footer">
@@ -101,14 +105,20 @@
       </div>
     </div>
 
-    <!-- Barra de navegación fija con soporte prev_href/next_href -->
+    <!-- Barra de navegación fija (sin chequeo de decimales) -->
     <div class="nav-fixed bottom" id="navReader">
-      {%- assign cap_str = page.capitulo | append: '' -%}
-      {%- assign is_decimal = cap_str contains '.' -%}
+      {%- comment -%}
+        Regla:
+        1) Si hay prev_href / next_href => usarlo.
+        2) Si no hay, y capitulo es numérico:
+           - Prev: mostrar si > 1
+           - Next: mostrar salvo es_ultimo: true
+        Nota: Para capítulos especiales (13.5, extra, etc.), define prev_href/next_href en el .md
+      {%- endcomment -%}
 
       {%- if page.prev_href -%}
         <a class="btn dark" href="{{ site.baseurl }}{{ page.prev_href }}">← Anterior</a>
-      {%- elsif page.capitulo and page.capitulo > 1 and is_decimal == false -%}
+      {%- elsif page.capitulo and page.capitulo > 1 -%}
         <a class="btn dark" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
       {%- else -%}
         <span></span>
@@ -116,7 +126,7 @@
 
       {%- if page.next_href -%}
         <a class="btn dark" href="{{ site.baseurl }}{{ page.next_href }}">Siguiente →</a>
-      {%- elsif page.es_ultimo != true and is_decimal == false -%}
+      {%- elsif page.es_ultimo != true -%}
         <a class="btn dark" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
       {%- endif -%}
 
@@ -237,73 +247,77 @@
       items.forEach(it => io.observe(it.fig));
     }
 
-    // Descarga con concurrencia y upgrade a full
-    const CONCURRENCY = 6, INTERVAL_MS = 0;
-    let cursor = 0;
+    /* ====== Descarga con concurrencia limitada + backoff ====== */
+    const CONCURRENCY = 3;   // antes 6
+    const INTERVAL_MS = 60;  // pequeña pausa entre tareas
+    const RETRIES = 2;       // reintentos por URL
 
-    function loadOne(it){
-      return new Promise((resolve) => {
-        const all = it.tries.slice();
-        if (!all.length) return resolve();
+    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+    function jitter(ms){ return ms + Math.floor(Math.random()*80); }
 
-        const first = withBase(all.shift()); // thumb primero
-        let upgraded = false;
-
-        it.img.onload = () => {
-          const full = all.find(u =>
-            u.includes('drive.usercontent.google.com/uc') && u.includes('id=')
-          );
-          if (full) {
-            const thumb = it.tries.find(u => u.includes('thumbnail?'));
-            const pre = new Image();
-            pre.referrerPolicy = 'no-referrer';
-            pre.onload  = () => {
-              if (!upgraded) {
-                upgraded = true;
-                it.img.src = withBase(full);
-                if (thumb) {
-                  it.img.srcset = `${withBase(thumb)} 1x, ${withBase(full)} 2x`;
-                  it.img.sizes  = '100vw';
-                }
-              }
-              resolve();
-            };
-            pre.onerror = () => resolve();
-            pre.src = withBase(full);
-          } else {
-            resolve();
-          }
-        };
-
-        const next = () => {
-          if (!all.length) {
-            const warn = document.createElement('div');
-            warn.className = 'error';
-            warn.textContent = `⚠️ No se pudo cargar la página ${it.index + 1}`;
-            it.fig.insertBefore(warn, it.fig.firstChild);
-            return resolve();
-          }
-          const u = withBase(all.shift());
-          it.img.onerror = next;
-          it.img.onload  = resolve;
-          it.img.src = u;
-        };
-
-        it.img.onerror = next;
-        it.img.src = first;
-      });
+    async function trySetSrc(img, url){
+      for (let attempt = 0; attempt <= RETRIES; attempt++){
+        const ok = await new Promise(res => {
+          let done = false;
+          const onload = ()=>{ if(!done){ done = true; img.onload = img.onerror = null; res(true); } };
+          const onerror = ()=>{ if(!done){ done = true; img.onload = img.onerror = null; res(false); } };
+          img.onload = onload;
+          img.onerror = onerror;
+          img.src = url;
+        });
+        if (ok) return true;
+        await sleep(jitter(200 * (attempt+1) * (attempt+1))); // 200ms, 800ms…
+      }
+      return false;
     }
 
+    async function loadOne(it){
+      const all = it.tries.slice(); // [thumb, full, view, ...]
+      if (!all.length) return;
+
+      // 1) intenta thumbnail
+      const thumb = withBase(all.shift());
+      const thumbOK = await trySetSrc(it.img, thumb);
+
+      // 2) si thumb cargó, intenta upgrade a 'full' en background
+      const full = it.tries.find(u => u.includes('drive.usercontent.google.com/uc') && u.includes('id='));
+      if (thumbOK && full){
+        const pre = new Image();
+        pre.referrerPolicy = 'no-referrer';
+        const upgraded = await new Promise(res => {
+          pre.onload  = ()=>{ it.img.srcset = `${withBase(thumb)} 1x, ${withBase(full)} 2x`; it.img.sizes='100vw'; it.img.src = withBase(full); res(true); };
+          pre.onerror = ()=> res(false);
+          pre.src = withBase(full);
+        });
+        if (upgraded) return; // listo
+      }
+
+      // 3) si thumb falló, prueba el resto en cadena (full → view → original)
+      if (!thumbOK){
+        while (all.length){
+          const next = withBase(all.shift());
+          const ok = await trySetSrc(it.img, next);
+          if (ok) return;
+          await sleep(jitter(120));
+        }
+        const warn = document.createElement('div');
+        warn.className = 'error';
+        warn.textContent = `⚠️ No se pudo cargar la página ${it.index + 1}`;
+        it.fig.insertBefore(warn, it.fig.firstChild);
+      }
+    }
+
+    let cursor = 0;
     async function worker(){
       while (true) {
         const i = cursor++;
         if (i >= items.length) break;
         await loadOne(items[i]);
-        if (INTERVAL_MS) await new Promise(r => setTimeout(r, INTERVAL_MS));
+        if (INTERVAL_MS) await sleep(INTERVAL_MS);
       }
     }
-
     await Promise.all(Array.from({length: CONCURRENCY}, worker));
+    /* =========================================================== */
 
   } catch (err) {
     mount.innerHTML = `<p class="error">No se pudieron cargar las imágenes. ${err.message}</p>`;
