@@ -175,22 +175,24 @@
     return '';
   }
 
-  // Genera candidatos: thumbnail grande -> full -> fallback
+  /* ========= Candidatos: CDN de imágenes (thumbnail) + view fallback ========= */
   function candidatesFrom(p){
     const tries = [];
     const u0 = normalizeGoogleUrl(String(p.url || ''));
     const id = p.id || extractDriveId(u0);
 
     if (id) {
-      tries.push(
-        `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w2560`,
-        `https://drive.usercontent.google.com/uc?id=${encodeURIComponent(id)}&export=download`,
-        `https://drive.google.com/uc?export=view&id=${encodeURIComponent(id)}`
-      );
+      // PRIORIDAD: thumbnail grande (redirige a lh3.googleusercontent.com)
+      tries.push(`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w2560`);
+      // ÚLTIMO recurso: vista web
+      tries.push(`https://drive.google.com/uc?export=view&id=${encodeURIComponent(id)}`);
+    } else if (u0) {
+      // Si el JSON trae URL absoluta, úsala como último intento
+      tries.push(u0);
     }
-    if (u0) tries.push(u0);
     return [...new Set(tries)];
   }
+  /* ========================================================================= */
 
   try {
     const res = await fetch(JSON_URL, { cache: 'no-cache' });
@@ -204,7 +206,7 @@
 
     if (!pages.length) throw new Error('JSON vacío o formato no soportado');
 
-    // Orden por número si existe en name/url
+    // Orden por número si existe en name/url (los sin número al final)
     pages.sort((a, b) => {
       const A = parseInt((String(a.name || a.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
       const B = parseInt((String(b.name || b.url || '').match(/(\d+)/) || [, '999999'])[1], 10);
@@ -247,10 +249,10 @@
       items.forEach(it => io.observe(it.fig));
     }
 
-    /* ====== Descarga con concurrencia limitada + backoff ====== */
-    const CONCURRENCY = 3;   // antes 6
-    const INTERVAL_MS = 60;  // pequeña pausa entre tareas
-    const RETRIES = 2;       // reintentos por URL
+    /* ====== Descarga con concurrencia MUY limitada + backoff ====== */
+    const CONCURRENCY = 2;
+    const INTERVAL_MS = 120;
+    const RETRIES = 2;
 
     function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
     function jitter(ms){ return ms + Math.floor(Math.random()*80); }
@@ -272,39 +274,25 @@
     }
 
     async function loadOne(it){
-      const all = it.tries.slice(); // [thumb, full, view, ...]
+      const all = it.tries.slice(); // [thumbnail, view, (u0)]
       if (!all.length) return;
 
-      // 1) intenta thumbnail
       const thumb = withBase(all.shift());
       const thumbOK = await trySetSrc(it.img, thumb);
+      if (thumbOK) return;
 
-      // 2) si thumb cargó, intenta upgrade a 'full' en background
-      const full = it.tries.find(u => u.includes('drive.usercontent.google.com/uc') && u.includes('id='));
-      if (thumbOK && full){
-        const pre = new Image();
-        pre.referrerPolicy = 'no-referrer';
-        const upgraded = await new Promise(res => {
-          pre.onload  = ()=>{ it.img.srcset = `${withBase(thumb)} 1x, ${withBase(full)} 2x`; it.img.sizes='100vw'; it.img.src = withBase(full); res(true); };
-          pre.onerror = ()=> res(false);
-          pre.src = withBase(full);
-        });
-        if (upgraded) return; // listo
+      // Cadena de fallbacks
+      while (all.length){
+        const next = withBase(all.shift());
+        const ok = await trySetSrc(it.img, next);
+        if (ok) return;
+        await sleep(jitter(120));
       }
 
-      // 3) si thumb falló, prueba el resto en cadena (full → view → original)
-      if (!thumbOK){
-        while (all.length){
-          const next = withBase(all.shift());
-          const ok = await trySetSrc(it.img, next);
-          if (ok) return;
-          await sleep(jitter(120));
-        }
-        const warn = document.createElement('div');
-        warn.className = 'error';
-        warn.textContent = `⚠️ No se pudo cargar la página ${it.index + 1}`;
-        it.fig.insertBefore(warn, it.fig.firstChild);
-      }
+      const warn = document.createElement('div');
+      warn.className = 'error';
+      warn.textContent = `⚠️ No se pudo cargar la página ${it.index + 1}`;
+      it.fig.insertBefore(warn, it.fig.firstChild);
     }
 
     let cursor = 0;
@@ -317,7 +305,7 @@
       }
     }
     await Promise.all(Array.from({length: CONCURRENCY}, worker));
-    /* =========================================================== */
+    /* ============================================================= */
 
   } catch (err) {
     mount.innerHTML = `<p class="error">No se pudieron cargar las imágenes. ${err.message}</p>`;
