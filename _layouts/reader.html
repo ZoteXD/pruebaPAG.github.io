@@ -80,7 +80,9 @@
     <div id="main" role="main" class="container">
       <header class="reader-hero">
         <h1 class="reader-title">{{ page.manga | default: page.title | default: "Manga" }}</h1>
-        <div class="reader-sub">Capítulo {{ page.capitulo | default: "?" }}</div>
+        <div class="reader-sub">
+          Capítulo {{ page.capitulo_label | default: page.capitulo | default: "?" }}
+        </div>
         <div id="pager" class="pager">Pag 0 / 0</div>
       </header>
 
@@ -99,16 +101,25 @@
       </div>
     </div>
 
-    <!-- Barra de navegación fija -->
+    <!-- Barra de navegación fija con soporte prev_href/next_href -->
     <div class="nav-fixed bottom" id="navReader">
-      {% if page.capitulo and page.capitulo > 1 %}
+      {%- assign cap_str = page.capitulo | append: '' -%}
+      {%- assign is_decimal = cap_str contains '.' -%}
+
+      {%- if page.prev_href -%}
+        <a class="btn dark" href="{{ site.baseurl }}{{ page.prev_href }}">← Anterior</a>
+      {%- elsif page.capitulo and page.capitulo > 1 and is_decimal == false -%}
         <a class="btn dark" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | minus:1 }}/">← Anterior</a>
-      {% else %}
+      {%- else -%}
         <span></span>
-      {% endif %}
-      {% if page.es_ultimo != true %}
+      {%- endif -%}
+
+      {%- if page.next_href -%}
+        <a class="btn dark" href="{{ site.baseurl }}{{ page.next_href }}">Siguiente →</a>
+      {%- elsif page.es_ultimo != true and is_decimal == false -%}
         <a class="btn dark" href="{{ site.baseurl }}/{{ page.manga_slug }}/cap{{ page.capitulo | plus:1 }}/">Siguiente →</a>
-      {% endif %}
+      {%- endif -%}
+
       <a class="btn" href="{{ site.baseurl }}{{ page.return_to | default: '/' }}">← Regresar al post</a>
     </div>
 
