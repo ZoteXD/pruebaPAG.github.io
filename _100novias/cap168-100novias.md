@@ -6,7 +6,7 @@ manga_slug: "100novias"
 capitulo: 168
 es_ultimo: false
 permalink: /100novias/cap168/
-return_to: /100novias/
+return_to: /100-novias/
 images_json: assets/mangas/100novias/cap168/images.json
 redirect_from:
   - /cap168-100novias/
