@@ -12,4 +12,6 @@ redirect_from:
   - /cap2-saneka/
 # Fuerza que el lector use style.css (no el tema del blog)
 use_main_css: true
+prev_href: /saneka/cap1/        # navegación manual para evitar romper el ciclo, pues al ser decimal no entra en los enteros.
+next_href: /saneka/cap3/
 ---

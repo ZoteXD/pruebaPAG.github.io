@@ -11,4 +11,6 @@ images_json: assets/mangas/saneka/cap11/images.json
 redirect_from:
   - /cap11-saneka/
 use_main_css: true
+prev_href: /saneka/cap10/
+next_href: /saneka/cap12/
 ---
