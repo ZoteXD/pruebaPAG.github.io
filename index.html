@@ -1,116 +1,31 @@
 ---
 layout: default
-title: 2.5 Enchilada Scan.
-use_main_css: true
+title: "Manga Viewer"
+use_main_css: true   <!-- si tu main.scss compila a un tema oscuro; quítalo si prefieres el claro -->
 ---
 
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Enchilada nos sekai</title>
-<link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css" />
-</head>
-<body class="theme">
-<header class="appbar">
-  <div class="brand">MangaReader</div>
-  <input id="search" class="search" placeholder="Buscar por título o tag…" />
-</header>
+{% include header.html %}
 
-<main class="container">
-  <section>
-    <h1>Biblioteca</h1>
-    <div id="grid" class="grid"></div>
-    <div id="home-error" class="error hidden"></div>
-  </section>
-</main>
+{%- comment -%}
+  Cargamos el catálogo estático (puedes mantenerlo en /catalogo.json).
+  Si lo prefieres, puedes moverlo a _data/catalogo.yml y leerlo con site.data.catalogo.
+{%- endcomment -%}
+{% assign catalogo = site.static_files | where: "path", "/catalogo.json" | first %}
+{% if catalogo %}
+  {% capture catalogo_json %}
+    {{ catalogo | file_content }}
+  {% endcapture %}
+  {% assign catalogo_arr = catalogo_json | jsonify | replace:'\"','"' %}  {# asegura stringify correcto #}
+{% else %}
+  {% assign catalogo_arr = '[]' %}
+{% endif %}
 
-<!-- Un único módulo que importa utils.js -->
-<script type="module">
-  // BASE solo aquí (Liquid se procesa en HTML, no en .js)
-  const BASE = "{{ site.baseurl }}";
-
-  import { loadJSON } from "{{ site.baseurl }}/assets/js/utils.js";
-
-  const grid = document.getElementById('grid');
-  const err = document.getElementById('home-error');
-  const search = document.getElementById('search');
-
-  let data = [];
-  init().catch(e => {
-    data = fallbackCatalog;
-    render(data);
-    if (!fallbackCatalog.length) {
-      err.textContent = 'Crea assets/catalog.json o edita el fallback dentro de index.html.';
-      err.classList.remove('hidden');
-    }
-  });
-
-  async function init() {
-    // Espera: [ { mangaId, title, coverId|cover, tags, latest }, ... ]
-    const catalog = await loadJSON(`${BASE}/assets/catalogo.json`);
-    data = catalog.map(item => ({
-      ...item,
-      cover: item.cover
-        ? item.cover
-        : (item.coverId ? `https://drive.google.com/thumbnail?id=${item.coverId}&sz=w600` : '')
-    }));
-    render(data);
-
-    search.addEventListener('input', () => {
-      const q = search.value.trim().toLowerCase();
-      const filtered = !q ? data : data.filter(item => {
-        const hayTitulo = (item.title||'').toLowerCase().includes(q);
-        const hayTag = (item.tags||[]).some(t => (t||'').toLowerCase().includes(q));
-        return hayTitulo || hayTag;
-      });
-      render(filtered);
-    });
-  }
-
-  function render(items) {
-    grid.innerHTML = '';
-    const frag = document.createDocumentFragment();
-
-    items.forEach(item => {
-      const a = document.createElement('a');
-      a.className = 'card';
-      a.href = item.url
-        ? (item.url.startsWith('http') ? item.url : `${BASE}${item.url}`)
-        : `${BASE}/reader.html?manga=${encodeURIComponent(item.mangaId)}&cap=${encodeURIComponent(item.latest)}`;
-
-      const img = document.createElement('img');
-      img.className = 'cover';
-      img.loading = 'lazy';
-      img.decoding = 'async';
-      img.src = item.cover || '';
-      img.alt = `${item.title || item.mangaId} portada`;
-      img.addEventListener('error', () => {
-        const fallback = document.createElement('div');
-        fallback.className = 'cover fallback';
-        fallback.textContent = (item.title||'?')[0] || '?';
-        img.replaceWith(fallback);
-      });
-
-      const info = document.createElement('div');
-      info.className = 'info';
-      const h3 = document.createElement('h3'); h3.textContent = item.title || item.mangaId;
-
-      const chips = document.createElement('div'); chips.className = 'chips';
-      (item.tags || []).forEach(t => {
-        const c = document.createElement('span'); c.className = 'chip'; c.textContent = t; chips.appendChild(c);
-      });
-
-      const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = `Último: ${item.latest}`;
-
-      info.appendChild(h3); info.appendChild(chips); info.appendChild(meta);
-      a.appendChild(img); a.appendChild(info);
-      frag.appendChild(a);
-    });
-
-    grid.appendChild(frag);
-  }
-</script>
-</body>
-</html>
+{%- comment -%}
+  Render de UNA sección "Catálogo" con buscador.
+  Si deseas varias secciones (por tag), puedes filtrar en Liquid y duplicar el include.
+{%- endcomment -%}
+{% include manga-section.html
+   title="Catálogo"
+   collection=catalogo_json
+   searchable=true
+%}

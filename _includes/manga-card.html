@@ -1,0 +1,26 @@
+<div class="manga-card group relative overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-manga-card-hover border border-border rounded-lg" data-title="{{ include.manga.title | downcase }}" data-genres="{{ include.manga.genres | join: ' ' | downcase }}">
+    <div class="relative aspect-[3/4] overflow-hidden">
+        <img
+            src="{{ include.manga.cover_image }}"
+            alt="{{ include.manga.title }}"
+            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+            loading="lazy"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    </div>
+    <div class="p-4 space-y-3">
+        <h3 class="font-bold text-lg line-clamp-2 text-foreground group-hover:text-manga-primary transition-colors">
+            {{ include.manga.title }}
+        </h3>
+        <div class="flex flex-wrap gap-2">
+            {% for genre in include.manga.genres %}
+            <span class="badge bg-manga-genre-bg text-manga-genre-text border-manga-primary text-xs">
+                {{ genre }}
+            </span>
+            {% endfor %}
+        </div>
+        <p class="text-sm text-muted-foreground">
+            Último: {{ include.manga.latest_chapter }}
+        </p>
+    </div>
+</div>
