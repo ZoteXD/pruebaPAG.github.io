@@ -1,10 +1,8 @@
-/* === UI "manga-card" aislada === */
 :root{ --mcv-bg:#0b0d10; --mcv-elev:#12161b; --mcv-text:#e6e9ef; --mcv-muted:#9aa3af; --mcv-border:#1c2128; --mcv-chip:#1f2937; }
 .mcv-appbar{ position:sticky; top:0; z-index:10; display:flex; gap:12px; align-items:center; padding:10px 16px;
   background:rgba(18,22,27,.9); backdrop-filter:blur(6px); border-bottom:1px solid var(--mcv-border); }
 .mcv-brand{ font-weight:700; letter-spacing:.3px; color:var(--mcv-text); }
 .mcv-section{ max-width:1100px; margin:0 auto; padding:20px 16px; }
-.mcv-section__head{ display:flex; align-items:center; gap:12px; }
 .mcv-h2{ margin:6px 4px 12px; font-size:1.25rem; color:var(--mcv-text); }
 .mcv-search{ margin-left:auto; background:var(--mcv-elev); color:var(--mcv-text); border:1px solid var(--mcv-border);
   padding:8px 12px; border-radius:10px; outline:none; } .mcv-search::placeholder{ color:var(--mcv-muted); }
@@ -19,4 +17,3 @@
 .mcv-chip{ background:var(--mcv-chip); color:var(--mcv-muted); padding:2px 8px; border-radius:999px; font-size:.75rem; border:1px solid var(--mcv-border); }
 .mcv-error{ margin-top:8px; padding:10px 12px; background:#2b1320; border:1px solid #4e1e36; color:#f0a3b8; border-radius:10px; }
 .mcv-hidden{ display:none; }
-/* === FIN UI "manga-card" aislada === */

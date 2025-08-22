@@ -12,13 +12,19 @@ use_main_css: true
 </div>
 
 <section class="mcv-section">
-  <div class="mcv-section__head">
-    <h2 class="mcv-h2">Catálogo</h2>
-  </div>
-
+  <h2 class="mcv-h2">Catálogo</h2>
   <div id="grid" class="mcv-grid"></div>
   <div id="msg" class="mcv-error mcv-hidden"></div>
 </section>
+
+<script>
+console.log("BASE:", '{{ site.baseurl }}');
+fetch('{{ site.baseurl }}/catalogo.json', {cache:'no-cache'})
+  .then(r => (console.log("catalogo status", r.status), r.ok ? r.json() : Promise.reject("HTTP "+r.status)))
+  .then(j => console.log("catalogo length", Array.isArray(j) ? j.length : typeof j))
+  .catch(e => console.error("catalogo ERROR", e));
+</script>
+
 
 <script>
 (async () => {
@@ -27,17 +33,15 @@ use_main_css: true
   const msg  = document.getElementById('msg');
   const Q    = document.getElementById('q');
 
-  function card({ title, url, cover, tags = [], latest = "" }) {
-    return `
-      <a class="mcv-card" href="${BASE}${url.startsWith('/')?url:'/'+url}">
-        <img class="mcv-cover" loading="lazy" decoding="async" src="${BASE}/${cover}" alt="${title}">
-        <div class="mcv-info">
-          <h3 class="mcv-title">${title}</h3>
-          <div class="mcv-chips">${(tags||[]).map(t=>`<span class="mcv-chip">${t}</span>`).join('')}</div>
-          <div class="mcv-meta">Último: ${latest||'-'}</div>
-        </div>
-      </a>`;
-  }
+  const card = ({ title, url, cover, tags = [], latest = "" }) => `
+    <a class="mcv-card" href="${BASE}${url.startsWith('/')?url:'/'+url}">
+      <img class="mcv-cover" loading="lazy" decoding="async" src="${BASE}/${cover}" alt="${title}">
+      <div class="mcv-info">
+        <h3 class="mcv-title">${title}</h3>
+        <div class="mcv-chips">${tags.map(t=>`<span class="mcv-chip">${t}</span>`).join('')}</div>
+        <div class="mcv-meta">Último: ${latest||'-'}</div>
+      </div>
+    </a>`;
 
   const render = list => grid.innerHTML = list.map(card).join('');
 
@@ -46,6 +50,7 @@ use_main_css: true
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const items = await res.json();
     render(items);
+
     Q.addEventListener('input', () => {
       const q = Q.value.trim().toLowerCase();
       const filtered = !q ? items : items.filter(it =>
