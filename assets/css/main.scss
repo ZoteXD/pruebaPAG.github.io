@@ -1,49 +1,22 @@
-/* ======= Manga-Card (aislado) ======= */
-:root {
-  --mcv-bg: #0b0d10; /* Background color */
-  --mcv-elev: #12161b; /* Elevation color */
-  --mcv-text: #e6e9ef; /* Text color */
-  --mcv-muted: #9aa3af; /* Muted text color */
-  --mcv-border: #1c2128;   /* Border color */
-  --mcv-chip: #1f2937; /* Chip background color */
-}
-
-.mcv-appbar {
-  position: sticky; top: 0; z-index: 10;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 16px; background: rgba(18,22,27,0.9); backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--mcv-border);
-}
-.mcv-brand { font-weight: 700; letter-spacing: .3px; color: var(--mcv-text); text-decoration: none; }
-
-.mcv-section { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
-.mcv-section__head { display:flex; align-items:center; gap:12px; }
-.mcv-h2 { margin: 6px 4px 12px; font-size: 1.25rem; color: var(--mcv-text); }
-
-.mcv-search {
-  margin-left: auto; background: var(--mcv-elev); color: var(--mcv-text);
-  border: 1px solid var(--mcv-border); padding: 8px 12px; border-radius: 10px; outline: none;
-}
-.mcv-search::placeholder { color: var(--mcv-muted); }
-
-.mcv-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 16px;
-}
-.mcv-card {
-  display:flex; flex-direction:column; text-decoration:none; color: inherit;
-  background: var(--mcv-elev); border:1px solid var(--mcv-border); border-radius:14px; overflow:hidden;
-  transition: transform .12s ease, border-color .12s ease;
-}
-.mcv-card:hover { transform: translateY(-2px); border-color: #263041; }
-.mcv-cover { width: 100%; aspect-ratio: 3/4; object-fit: cover; display:block; }
-.mcv-info { padding: 10px 12px; color: var(--mcv-text); }
-.mcv-title { margin: 0 0 6px; font-size: 1rem; }
-.mcv-meta { margin-top: 6px; color: var(--mcv-muted); font-size: .875rem; }
-.mcv-chips { display:flex; flex-wrap:wrap; gap:6px; }
-.mcv-chip {
-  background: var(--mcv-chip); color: var(--mcv-muted);
-  padding: 2px 8px; border-radius: 999px; font-size: .75rem; border: 1px solid var(--mcv-border);
-}
-
-.mcv-error { margin-top: 8px; padding: 10px 12px; background: #2b1320; border: 1px solid #4e1e36; color: #f0a3b8; border-radius: 10px; }
-.mcv-hidden { display:none; }
+/* === UI "manga-card" aislada === */
+:root{ --mcv-bg:#0b0d10; --mcv-elev:#12161b; --mcv-text:#e6e9ef; --mcv-muted:#9aa3af; --mcv-border:#1c2128; --mcv-chip:#1f2937; }
+.mcv-appbar{ position:sticky; top:0; z-index:10; display:flex; gap:12px; align-items:center; padding:10px 16px;
+  background:rgba(18,22,27,.9); backdrop-filter:blur(6px); border-bottom:1px solid var(--mcv-border); }
+.mcv-brand{ font-weight:700; letter-spacing:.3px; color:var(--mcv-text); }
+.mcv-section{ max-width:1100px; margin:0 auto; padding:20px 16px; }
+.mcv-section__head{ display:flex; align-items:center; gap:12px; }
+.mcv-h2{ margin:6px 4px 12px; font-size:1.25rem; color:var(--mcv-text); }
+.mcv-search{ margin-left:auto; background:var(--mcv-elev); color:var(--mcv-text); border:1px solid var(--mcv-border);
+  padding:8px 12px; border-radius:10px; outline:none; } .mcv-search::placeholder{ color:var(--mcv-muted); }
+.mcv-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:16px; }
+.mcv-card{ display:flex; flex-direction:column; text-decoration:none; color:inherit; background:var(--mcv-elev);
+  border:1px solid var(--mcv-border); border-radius:14px; overflow:hidden; transition:transform .12s, border-color .12s; }
+.mcv-card:hover{ transform:translateY(-2px); border-color:#263041; }
+.mcv-cover{ width:100%; aspect-ratio:3/4; object-fit:cover; display:block; }
+.mcv-info{ padding:10px 12px; color:var(--mcv-text); } .mcv-title{ margin:0 0 6px; font-size:1rem; }
+.mcv-meta{ margin-top:6px; color:var(--mcv-muted); font-size:.875rem; }
+.mcv-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.mcv-chip{ background:var(--mcv-chip); color:var(--mcv-muted); padding:2px 8px; border-radius:999px; font-size:.75rem; border:1px solid var(--mcv-border); }
+.mcv-error{ margin-top:8px; padding:10px 12px; background:#2b1320; border:1px solid #4e1e36; color:#f0a3b8; border-radius:10px; }
+.mcv-hidden{ display:none; }
+/* === FIN UI "manga-card" aislada === */
