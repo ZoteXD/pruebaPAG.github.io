@@ -1,44 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
   <head>
-  {% if page.use_main_css %}
-  <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css">
-  {% else %}
-    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
-  {% endif %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ page.title | default: site.title | escape }}</title>
+
+    {%- comment -%}
+      Si tu tema compila SCSS a /assets/css/main.css, este link sirve igual.
+      Si prefieres otra hoja, cambia la ruta aquí.
+    {%- endcomment -%}
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css" />
+
+    {%- if page.extra_css -%}
+      {%- for css in page.extra_css -%}
+        <link rel="stylesheet" href="{{ site.baseurl }}{{ css }}">
+      {%- endfor -%}
+    {%- endif -%}
   </head>
 
-  <body{% if page.use_main_css %} class="theme"{% endif %}>
-    <div class="wrapper-masthead">
-      <div class="container">
-        <header class="masthead clearfix">
-          <a href="{{ site.baseurl }}/" class="site-avatar"><img src="{{ site.avatar }}" /></a>
+  <body>
+    {%- comment -%} Header opcional del sitio {%- endcomment -%}
+    {%- if page.include_header != false -%}
+      {%- if site.header_include -%}
+        {% include {{ site.header_include }} %}
+      {%- else -%}
+        {% if site.header and site.header != '' %}
+          {% include {{ site.header }} %}
+        {% elsif site.includes and site.includes.header %}
+          {% include header.html %}
+        {% else %}
+          <!-- Sin header include; continúa -->
+        {% endif %}
+      {%- endif -%}
+    {%- endif -%}
 
-          <div class="site-info">
-            <h1 class="site-name"><a href="{{ site.baseurl }}/">{{ site.name }}</a></h1>
-            <p class="site-description">{{ site.description }}</p>
-          </div>
-
-          <nav>
-            <a href="{{ site.baseurl }}/">Inicio</a>
-            <a href="{{ site.baseurl }}/about">About</a>
-          </nav>
-        </header>
-      </div>
-    </div>
-
-    <div id="main" role="main" class="container">
+    <main id="main" role="main">
       {{ content }}
-    </div>
+    </main>
 
-    <div class="wrapper-footer">
-      <div class="container">
-        <footer class="footer">
-          {% include svg-icons.html %}
-        </footer>
-      </div>
-    </div>
+    {%- comment -%} Footer opcional {%- endcomment -%}
+    {%- if page.include_footer != false -%}
+      {% if site.footer and site.footer != '' %}
+        {% include {{ site.footer }} %}
+      {% else %}
+        <!-- Sin footer include -->
+      {% endif %}
+    {%- endif -%}
 
-    {% include analytics.html %}
+    {%- if page.extra_js -%}
+      {%- for js in page.extra_js -%}
+        <script src="{{ site.baseurl }}{{ js }}"></script>
+      {%- endfor -%}
+    {%- endif -%}
   </body>
 </html>
