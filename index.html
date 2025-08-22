@@ -1,31 +1,63 @@
 ---
 layout: default
 title: "Manga Viewer"
-use_main_css: true   <!-- si tu main.scss compila a un tema oscuro; quítalo si prefieres el claro -->
+use_main_css: true
 ---
 
 {% include header.html %}
 
-{%- comment -%}
-  Cargamos el catálogo estático (puedes mantenerlo en /catalogo.json).
-  Si lo prefieres, puedes moverlo a _data/catalogo.yml y leerlo con site.data.catalogo.
-{%- endcomment -%}
-{% assign catalogo = site.static_files | where: "path", "/catalogo.json" | first %}
-{% if catalogo %}
-  {% capture catalogo_json %}
-    {{ catalogo | file_content }}
-  {% endcapture %}
-  {% assign catalogo_arr = catalogo_json | jsonify | replace:'\"','"' %}  {# asegura stringify correcto #}
-{% else %}
-  {% assign catalogo_arr = '[]' %}
-{% endif %}
+<div class="mcv-appbar">
+  <strong class="mcv-brand">Mangas</strong>
+  <input id="q" class="mcv-search" placeholder="Buscar...">
+</div>
 
-{%- comment -%}
-  Render de UNA sección "Catálogo" con buscador.
-  Si deseas varias secciones (por tag), puedes filtrar en Liquid y duplicar el include.
-{%- endcomment -%}
-{% include manga-section.html
-   title="Catálogo"
-   collection=catalogo_json
-   searchable=true
-%}
+<section class="mcv-section">
+  <div class="mcv-section__head">
+    <h2 class="mcv-h2">Catálogo</h2>
+  </div>
+
+  <div id="grid" class="mcv-grid"></div>
+  <div id="msg" class="mcv-error mcv-hidden"></div>
+</section>
+
+<script>
+(async () => {
+  const BASE = '{{ site.baseurl }}';
+  const grid = document.getElementById('grid');
+  const msg  = document.getElementById('msg');
+  const Q    = document.getElementById('q');
+
+  function card({ title, url, cover, tags = [], latest = "" }) {
+    return `
+      <a class="mcv-card" href="${BASE}${url.startsWith('/')?url:'/'+url}">
+        <img class="mcv-cover" loading="lazy" decoding="async" src="${BASE}/${cover}" alt="${title}">
+        <div class="mcv-info">
+          <h3 class="mcv-title">${title}</h3>
+          <div class="mcv-chips">${(tags||[]).map(t=>`<span class="mcv-chip">${t}</span>`).join('')}</div>
+          <div class="mcv-meta">Último: ${latest||'-'}</div>
+        </div>
+      </a>`;
+  }
+
+  try {
+    const res = await fetch(BASE + '/catalogo.json', { cache:'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const items = await res.json();
+
+    const render = list => grid.innerHTML = list.map(card).join('');
+    render(items);
+
+    Q.addEventListener('input', () => {
+      const q = Q.value.trim().toLowerCase();
+      const filtered = !q ? items : items.filter(it =>
+        (it.title||'').toLowerCase().includes(q) ||
+        (it.tags||[]).some(t => (t||'').toLowerCase().includes(q))
+      );
+      render(filtered);
+    });
+  } catch (e) {
+    msg.textContent = 'No se pudo cargar el catálogo: ' + e.message;
+    msg.classList.remove('mcv-hidden');
+  }
+})();
+</script>
