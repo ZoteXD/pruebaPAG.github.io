@@ -39,14 +39,13 @@ use_main_css: true
       </a>`;
   }
 
+  const render = list => grid.innerHTML = list.map(card).join('');
+
   try {
     const res = await fetch(BASE + '/catalogo.json', { cache:'no-cache' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const items = await res.json();
-
-    const render = list => grid.innerHTML = list.map(card).join('');
     render(items);
-
     Q.addEventListener('input', () => {
       const q = Q.value.trim().toLowerCase();
       const filtered = !q ? items : items.filter(it =>
