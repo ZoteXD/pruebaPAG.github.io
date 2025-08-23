@@ -26,7 +26,8 @@ layout: default
 
 <script>
 (function(){
-  const CATALOG_URL = "{{ '/catalogo.json' | relative_url }}";
+  // JSON movido a assets/data para que Jekyll siempre lo copie al _site
+  const CATALOG_URL = "{{ '/assets/data/catalogo.json' | relative_url }}?v={{ site.github.build_revision }}";
   // BASE ya incluye el baseurl correcto, por ejemplo "/pruebaPAG.github.io/"
   const BASE = "{{ '/' | relative_url }}";
 
@@ -50,9 +51,10 @@ layout: default
   }
 
   function cardHTML(item){
+    if(!item) return '';
     const title  = item.title || 'Sin título';
-    const href   = withBase(item.url || '#');          // <-- baseurl aplicado
-    const cover  = imgWithBase(item.cover);            // <-- baseurl aplicado
+    const href   = withBase(item.url || '#');          // baseurl aplicado
+    const cover  = imgWithBase(item.cover);            // baseurl aplicado
     const tags   = ensureArray(item.tags);
     const latest = item.latest || '';
     const chips  = tags.map(t => `<span class="chip">${t}</span>`).join('');
@@ -68,6 +70,10 @@ layout: default
   }
 
   function render(list, el){
+    if (!Array.isArray(list)) {
+      el.innerHTML = `<div class="meta">No hay elementos.</div>`;
+      return;
+    }
     el.innerHTML = list.map(cardHTML).join('') || `<div class="meta">No hay elementos.</div>`;
   }
 
@@ -78,7 +84,7 @@ layout: default
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
-      // Distribución manual actual (puedes cambiarla cuando quieras)
+      // Distribución manual: 1 activo, 1 joint, 1 finalizado
       const activos = [data[0]];       // Ririsa
       const joints  = [data[1]];       // Las 100 Novias
       const finalizados = [data[2]];   // Saneka
@@ -87,10 +93,20 @@ layout: default
       render(joints, grids.joints);
       render(finalizados, grids.finalizados);
     }catch(e){
-      console.error(e);
+      console.error('No se pudo cargar catalogo.json:', e);
       Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">Error cargando catálogo.</div>`);
     }
   }
+
+  // búsqueda (simple: título o tags)
+  document.getElementById('q')?.addEventListener('input', (e)=>{
+    const q = e.target.value.trim().toLowerCase();
+    // filtro en el DOM (simple) para no re-pedir el JSON
+    document.querySelectorAll('.card').forEach(a=>{
+      const text = a.textContent.toLowerCase();
+      a.style.display = text.includes(q) ? '' : 'none';
+    });
+  });
 
   load();
 })();
