@@ -1,6 +1,9 @@
 url: "https://zotexd.github.io"
 baseurl: "/pruebaPAG.github.io"
 
+include:
+  - catalogo.json
+
 defaults:
   - scope: { path: "", type: posts }
     values: { permalink: "/:title/" }
