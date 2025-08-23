@@ -1,21 +1,68 @@
-<header class="scan-header">
-  <div class="scan-header__inner">
-    <!-- Izquierda: logo/enlace -->
-    <a class="scan-logo" href="{{ '/' | relative_url }}">SCAN</a>
+<script>
+(function () {
+  // === Utilidades ===
+  const $all = sel => Array.from(document.querySelectorAll(sel));
+  const norm = t => (t || '').toLowerCase()
+    .normalize('NFD').replace(/\p{Diacritic}/gu, '');
 
-    <!-- Centro: buscador -->
-    <form class="scan-search" role="search" aria-label="Buscar..." onsubmit="return false;">
-      <input
-        id="scan-search-input"
-        type="search"
-        placeholder="Buscar ..."
-        autocomplete="off"
-        aria-label="Buscar "
-      />
-      <button id="scan-search-btn" type="button">Buscar</button>
-    </form>
+  // === 1) Detecta elementos buscables en varias vistas ===
+  // - En HOME: tarjetas con .grid .card
+  // - En CAPS: items con #chapters-list .chapter-item
+  // - Genérico: cualquier elemento con [data-scan-search-item]
+  const SCOPE_SELECTORS = [
+    '.grid .card',
+    '#chapters-list .chapter-item',
+    '[data-scan-search-item]'
+  ];
 
-    <!-- Derecha: CTA -->
-    <a class="scan-cta" href="{{ '/app' | relative_url }}">Descarga la app</a>
-  </div>
-</header>
+  function getSearchables() {
+    // Unifica todos los posibles ítems visibles en la página actual
+    const nodes = new Set();
+    SCOPE_SELECTORS.forEach(sel => $all(sel).forEach(n => nodes.add(n)));
+    // Para cada ítem definimos cómo mostrar/ocultar
+    return Array.from(nodes).map(node => {
+      // nodo visible a nivel "tarjeta" o "item"
+      // (si el selector apuntó a algo interno, sube hasta el <a.card> o el .chapter-item)
+      let item = node;
+      if (!item.matches('.card, .chapter-item, [data-scan-search-item]')) {
+        const up = node.closest('.card, .chapter-item, [data-scan-search-item]');
+        if (up) item = up;
+      }
+      const text = norm(item.getAttribute('data-search') || item.textContent);
+      return { item, text };
+    });
+  }
+
+  // === 2) Filtrado ===
+  let index = getSearchables();
+  function filter(qRaw) {
+    const q = norm(qRaw || '');
+    if (!q) {
+      index.forEach(({ item }) => item.style.display = '');
+      return;
+    }
+    index.forEach(({ item, text }) => {
+      item.style.display = text.includes(q) ? '' : 'none';
+    });
+  }
+
+  // === 3) Reindex automático cuando cambia el DOM (home pinta por fetch) ===
+  const obs = new MutationObserver(() => { index = getSearchables(); });
+  // Observa contenedores típicos
+  ['.grid', '#chapters-list'].forEach(sel => {
+    $all(sel).forEach(el => obs.observe(el, { childList: true, subtree: true }));
+  });
+  // Reindex inicial por si ya hay algo pintado
+  index = getSearchables();
+
+  // === 4) Enlazar input del header ===
+  const input = document.getElementById('scan-search-input');
+  const button = document.getElementById('scan-search-btn');
+  if (!input) return;
+
+  const onInput = () => filter(input.value);
+  input.addEventListener('input', onInput);
+  button?.addEventListener('click', onInput);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); onInput(); } });
+})();
+</script>
