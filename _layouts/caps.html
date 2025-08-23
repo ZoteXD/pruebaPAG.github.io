@@ -39,7 +39,7 @@ layout: default
 {
   "baseurl": {{ site.baseurl | jsonify }},
   "series":  {{ page.series | default: "" | jsonify }},
-  "page":    {{ page | jsonify | replace: "</", "<\\/" } }
+  "page":    {{ page | jsonify | replace: "</", "<\\/" }}
 }
 </script>
 
