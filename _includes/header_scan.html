@@ -1,15 +1,21 @@
-<header class="site-header">
-  <div class="container header-row">
-    <!-- Logo / marca -->
-    <a class="brand-scan" href="{{ site.baseurl }}/">SCAN</a>
+<header class="scan-header">
+  <div class="scan-header__inner">
+    <!-- Izquierda: logo/enlace -->
+    <a class="scan-logo" href="{{ '/' | relative_url }}">SCAN</a>
 
-    <!-- Buscador / filtro -->
-    <form class="search-form" onsubmit="event.preventDefault(); buscarCapitulo();">
-      <input id="qcap" type="search" placeholder="Buscar capítulos…" aria-label="Buscar capítulos">
-      <button type="submit">Buscar</button>
+    <!-- Centro: buscador -->
+    <form class="scan-search" role="search" aria-label="Buscar capítulos" onsubmit="return false;">
+      <input
+        id="scan-search-input"
+        type="search"
+        placeholder="Buscar capítulos..."
+        autocomplete="off"
+        aria-label="Buscar capítulos"
+      />
+      <button id="scan-search-btn" type="button">Buscar</button>
     </form>
 
-    <!-- Acción secundaria opcional -->
-    <a class="btn-ghost" href="{{ site.baseurl }}/#app">Descarga la app</a>
+    <!-- Derecha: CTA -->
+    <a class="scan-cta" href="{{ '/app' | relative_url }}">Descarga la app</a>
   </div>
 </header>
