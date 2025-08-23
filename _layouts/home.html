@@ -47,25 +47,24 @@ layout: default
   }
 
   function cardHTML(item){
-    if(!item) return '';
-    const title  = item.title || 'Sin título';
-    const href   = withBase(item.url || '#');
-    const cover  = imgWithBase(item.cover);
-    // admitimos "tags" o "genres"
-    const tags   = ensureArray(item.tags ?? item.genres);
-    // admitimos "latest" o "last_label"
-    const latest = item.latest ?? item.last_label ?? '';
-    const chips  = tags.map(t => `<span class="chip">${t}</span>`).join('');
-    return `
-      <a class="card" href="${href}">
-        <div class="card-cover"><img src="${cover}" alt="${title}" loading="lazy"></div>
-        <div class="card-body">
-          <h3 class="card-title">${title}</h3>
-          <div class="chips">${chips}</div>
-          <div class="meta">${latest}</div>
-        </div>
-      </a>`;
-  }
+  if(!item) return '';
+  const title  = item.title || 'Sin título';
+  const href   = withBase(item.url ?? item.permalink ?? item.href ?? '#');
+  const cover  = imgWithBase(item.portada ?? item.cover); // <-- soporta 'portada'
+  const tags   = ensureArray(item.tags ?? item.generos ?? item.genres); // opcional
+  const latest = item.latest ?? item.last_label ?? '';
+  const chips  = tags.map(t => `<span class="chip">${t}</span>`).join('');
+  return `
+    <a class="card" href="${href}">
+      <div class="card-cover"><img src="${cover}" alt="${title}" loading="lazy"></div>
+      <div class="card-body">
+        <h3 class="card-title">${title}</h3>
+        <div class="chips">${chips}</div>
+        <div class="meta">${latest}</div>
+      </div>
+    </a>`;
+}
+
 
   function render(list, el){
     if (!Array.isArray(list) || list.length === 0) {
@@ -127,14 +126,13 @@ layout: default
   }
 
   // búsqueda (filtra tarjetas pintadas por texto)
-  document.getElementById('q')?.addEventListener('input', (e)=>{
-    const q = e.target.value.trim().toLowerCase();
-    document.querySelectorAll('.grid .card').forEach(a=>{
-      const text = a.textContent.toLowerCase();
-      a.style.display = text.includes(q) ? '' : 'none';
+document.getElementById('scan-search-input')?.addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.grid .card').forEach(a=>{
+    const text = a.textContent.toLowerCase();
+    a.style.display = text.includes(q) ? '' : 'none';
     });
   });
-
   load();
 })();
 </script>
