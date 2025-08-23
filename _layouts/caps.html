@@ -3,18 +3,7 @@ layout: default
 ---
 
 <!-- Header SCAN -->
-<header class="site-header">
-  <div class="container header-row">
-    <a class="brand-scan" href="{{ site.baseurl }}/">SCAN</a>
-
-    <form class="search-form" onsubmit="event.preventDefault(); buscarCapitulo();">
-      <input id="qcap" type="search" placeholder="Buscar capítulos…">
-      <button>Buscar</button>
-    </form>
-
-    <a class="btn-back" href="{{ site.baseurl }}/">Descarga la aplicación</a>
-  </div>
-</header>
+{% include header_scan.html %}
 
 <main class="container">
   <!-- Portada + Ficha -->

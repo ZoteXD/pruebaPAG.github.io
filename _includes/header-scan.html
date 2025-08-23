@@ -1,0 +1,15 @@
+<header class="site-header">
+  <div class="container header-row">
+    <!-- Logo / marca -->
+    <a class="brand-scan" href="{{ site.baseurl }}/">SCAN</a>
+
+    <!-- Buscador / filtro -->
+    <form class="search-form" onsubmit="event.preventDefault(); buscarCapitulo();">
+      <input id="qcap" type="search" placeholder="Buscar capítulos…" aria-label="Buscar capítulos">
+      <button type="submit">Buscar</button>
+    </form>
+
+    <!-- Acción secundaria opcional -->
+    <a class="btn-ghost" href="{{ site.baseurl }}/#app">Descarga la app</a>
+  </div>
+</header>
