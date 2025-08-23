@@ -28,27 +28,32 @@ layout: default
     {% include manga_ficha.html %}
   </div>
 
-  <!-- 👇 CLAVE: contenido del post/página -->
+  <!-- 👇 Contenido del post/página -->
   <article class="reader-content">
     {{ content }}
   </article>
 </main>
 
-<!-- Datos seguros para JS (evita Liquid complejo dentro de <script>) -->
-<div id="page-data"
-     data-baseurl="{{ site.baseurl | escape }}"
-     data-series="{{ page.series | default: '' | escape }}"
-     data-page='{{ page | jsonify | replace: "</", "<\\/" }}'
-     hidden></div>
+<!-- Config segura para JS (no visible en la página) -->
+<script type="application/json" id="page-config">
+{
+  "baseurl": {{ site.baseurl | jsonify }},
+  "series":  {{ page.series | default: "" | jsonify }},
+  "page":    {{ page | jsonify | replace: "</", "<\\/" } }
+}
+</script>
 
 <script>
-  // ====== Vars desde HTML → JS (robusto para GitHub Pages) ======
-  const __el    = document.getElementById('page-data');
-  const BASEURL = __el?.dataset.baseurl || '';
-  const SERIES  = __el?.dataset.series  || '';
-  const PAGE    = (()=>{ try { return JSON.parse(__el?.dataset.page || '{}'); } catch { return {}; } })();
+  // Carga de config desde <script type="application/json" id="page-config">
+  let BASEURL = '', SERIES = '', PAGE = {};
+  try {
+    const cfg = JSON.parse(document.getElementById('page-config').textContent);
+    BASEURL = cfg.baseurl || '';
+    SERIES  = cfg.series  || '';
+    PAGE    = cfg.page    || {};
+  } catch (e) { /* noop */ }
 
-  // ====== Buscador simple en la página ======
+  // ====== Buscador simple ======
   function buscarCapitulo(){
     const v = (document.getElementById('qcap')?.value || '').toLowerCase();
     if(!v) return;
@@ -62,9 +67,8 @@ layout: default
     if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
   }
 
-  // ====== Autocompletar ficha desde catalogo.json (opcional) ======
+  // ====== Autocompletar ficha desde catalogo.json ======
   (async function hydrateFromCatalog(){
-    // Solo hidratar si faltan campos comunes y hay series
     const needs = !('sinopsis' in PAGE) || !('autor' in PAGE) || !('generos' in PAGE);
     if(!needs || !SERIES) return;
 
@@ -78,7 +82,6 @@ layout: default
     }
     if(!catalog) return;
 
-    // Soporta JSON plano o por secciones/latest
     let items = [];
     if (Array.isArray(catalog)) items = catalog;
     else if (catalog.sections && Array.isArray(catalog.sections)) {
