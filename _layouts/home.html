@@ -35,51 +35,104 @@ layout: default
     finalizados: $('#grid-finalizados')
   };
 
+  const state = { data: [], bySection: null, query: "" };
+
   const ensureArray = v => Array.isArray(v) ? v : [];
 
+  // Card renderer
   function cardHTML(item){
-    const title  = item.title || 'Sin título';
-    const url    = item.url   || '#';
-    const cover  = item.cover || 'https://via.placeholder.com/480x640?text=Cover';
-    const tags   = ensureArray(item.tags);
-    const latest = item.latest || '';
-    const chips  = tags.map(t => `<span class="chip">${t}</span>`).join('');
+    const title = (item.title || 'Sin título');
+    const url   = item.url || '#';
+    const cover = item.cover || 'https://via.placeholder.com/480x640?text=Cover';
+    const genres = ensureArray(item.genres);
+    const last  = item.last_label || '';
+    const chips = genres.map(g => `<span class="chip">${g}</span>`).join('');
     return `
       <a class="card" href="${url}">
-        <div class="card-cover"><img src="${cover}" alt="${title}" loading="lazy"></div>
+        <div class="card-cover">
+          <img src="${cover}" alt="${title}" loading="lazy">
+        </div>
         <div class="card-body">
           <h3 class="card-title">${title}</h3>
           <div class="chips">${chips}</div>
-          <div class="meta">${latest}</div>
+          <div class="meta">${last}</div>
         </div>
       </a>`;
   }
 
-  function render(list, el){
-    el.innerHTML = list.map(cardHTML).join('') || `<div class="meta">No hay elementos.</div>`;
+  function renderGrid(list, el){
+    el.innerHTML = list.map(cardHTML).join('') || `<div class="meta">No hay elementos para mostrar.</div>`;
+  }
+
+  // Filtro por búsqueda
+  function applySearch(items, q){
+    if(!q) return items;
+    const s = q.trim().toLowerCase();
+    return items.filter(it => {
+      const title = (it.title || '').toLowerCase();
+      const genres = ensureArray(it.genres).join(' ').toLowerCase();
+      return title.includes(s) || genres.includes(s);
+    });
+  }
+
+  // Pinta según formato: objeto por secciones o lista plana con status
+  function paint(){
+    const q = state.query;
+
+    if(state.bySection){
+      const A = applySearch(state.bySection.activos || [], q);
+      const J = applySearch(state.bySection.joints  || [], q);
+      const F = applySearch(state.bySection.finalizados || [], q);
+      renderGrid(A, grids.activos);
+      renderGrid(J, grids.joints);
+      renderGrid(F, grids.finalizados);
+    }else{
+      const activos      = applySearch(state.data.filter(x => (x.status||'').toLowerCase()==='activo'), q);
+      const joints       = applySearch(state.data.filter(x => (x.status||'').toLowerCase()==='joint'), q);
+      const finalizados  = applySearch(state.data.filter(x => (x.status||'').toLowerCase()==='finalizado'), q);
+      renderGrid(activos, grids.activos);
+      renderGrid(joints, grids.joints);
+      renderGrid(finalizados, grids.finalizados);
+    }
   }
 
   async function load(){
+    // Loaders iniciales
     Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">Cargando…</div>`);
+
+    let raw;
     try{
       const res = await fetch(CATALOG_URL, {cache:'no-store'});
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-
-      // Distribuir manualmente tus 3 mangas: 1 activo, 1 joint, 1 finalizado
-      const activos = [data[0]];       // Ririsa
-      const joints  = [data[1]];       // Las 100 Novias
-      const finalizados = [data[2]];   // Saneka
-
-      render(activos, grids.activos);
-      render(joints, grids.joints);
-      render(finalizados, grids.finalizados);
-
-    }catch(e){
-      console.error(e);
-      Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">Error cargando catálogo.</div>`);
+      raw = await res.json();
+    }catch(err){
+      console.error('Error cargando catalogo.json', err);
+      Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">No se pudo cargar el catálogo.</div>`);
+      return;
     }
+
+    // Detectar formato
+    if(Array.isArray(raw)){
+      state.data = raw;
+      state.bySection = null;
+    }else if(raw && typeof raw === 'object'){
+      state.bySection = {
+        activos: ensureArray(raw.activos),
+        joints: ensureArray(raw.joints),
+        finalizados: ensureArray(raw.finalizados)
+      };
+      state.data = []; // no se usa en este modo
+    }else{
+      Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">Formato de catálogo no válido.</div>`);
+      return;
+    }
+
+    paint();
   }
+
+  // Buscar
+  const qInput = document.getElementById('q');
+  qInput?.addEventListener('input', (e)=>{ state.query = e.target.value; paint(); });
 
   load();
 })();
