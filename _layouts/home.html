@@ -26,10 +26,14 @@ layout: default
 
 <script>
 (function(){
-  // JSON movido a assets/data para que Jekyll siempre lo copie al _site
-  const CATALOG_URL = "{{ '/assets/data/catalogo.json' | relative_url }}?v={{ site.github.build_revision }}";
   // BASE ya incluye el baseurl correcto, por ejemplo "/pruebaPAG.github.io/"
   const BASE = "{{ '/' | relative_url }}";
+
+  // Intentaremos estas rutas en orden (todas con baseurl aplicado):
+  const CANDIDATES = [
+    "{{ '/assets/data/catalogo.json' | relative_url }}",
+    "{{ '/catalogo.json' | relative_url }}"
+  ].map(u => u + "?v={{ site.github.build_revision }}");
 
   const $ = sel => document.querySelector(sel);
   const grids = {
@@ -37,7 +41,6 @@ layout: default
     joints: $('#grid-joints'),
     finalizados: $('#grid-finalizados')
   };
-
   const ensureArray = v => Array.isArray(v) ? v : [];
 
   function withBase(url){
@@ -45,7 +48,6 @@ layout: default
     return BASE + String(url || '#').replace(/^\//,'');
   }
   function imgWithBase(src){
-    // si ya es absoluta (http/https), se deja; si es relativa, se prefija con BASE
     if(!src) return 'https://via.placeholder.com/480x640?text=Cover';
     return /^(https?:)?\/\//i.test(src) ? src : withBase(src);
   }
@@ -53,10 +55,12 @@ layout: default
   function cardHTML(item){
     if(!item) return '';
     const title  = item.title || 'Sin título';
-    const href   = withBase(item.url || '#');          // baseurl aplicado
-    const cover  = imgWithBase(item.cover);            // baseurl aplicado
-    const tags   = ensureArray(item.tags);
-    const latest = item.latest || '';
+    const href   = withBase(item.url || '#');
+    const cover  = imgWithBase(item.cover);
+    // admitimos "tags" o "genres"
+    const tags   = ensureArray(item.tags ?? item.genres);
+    // admitimos "latest" o "last_label"
+    const latest = item.latest ?? item.last_label ?? '';
     const chips  = tags.map(t => `<span class="chip">${t}</span>`).join('');
     return `
       <a class="card" href="${href}">
@@ -70,39 +74,68 @@ layout: default
   }
 
   function render(list, el){
-    if (!Array.isArray(list)) {
+    if (!Array.isArray(list) || list.length === 0) {
       el.innerHTML = `<div class="meta">No hay elementos.</div>`;
       return;
     }
-    el.innerHTML = list.map(cardHTML).join('') || `<div class="meta">No hay elementos.</div>`;
+    el.innerHTML = list.map(cardHTML).join('');
+  }
+
+  async function fetchWithFallback(urls){
+    let lastErr;
+    for (const u of urls){
+      try{
+        const res = await fetch(u, {cache:'no-store'});
+        if(!res.ok) throw new Error(`HTTP ${res.status} @ ${u}`);
+        const json = await res.json();
+        console.info("Catálogo cargado:", u);
+        return json;
+      }catch(e){
+        console.warn("Fallo cargando catálogo:", e);
+        lastErr = e;
+      }
+    }
+    throw lastErr || new Error("No se pudo cargar el catálogo");
+  }
+
+  function paint(data){
+    // Formatos soportados:
+    // 1) Objeto por secciones: {activos:[], joints:[], finalizados:[]}
+    // 2) Lista plana: [ {...}, {...}, {...} ]  (usaremos los 3 primeros)
+    if (Array.isArray(data)) {
+      const A = data[0] ? [data[0]] : [];
+      const J = data[1] ? [data[1]] : [];
+      const F = data[2] ? [data[2]] : [];
+      render(A, grids.activos);
+      render(J, grids.joints);
+      render(F, grids.finalizados);
+      return;
+    }
+    if (data && typeof data === 'object') {
+      render(ensureArray(data.activos), grids.activos);
+      render(ensureArray(data.joints), grids.joints);
+      render(ensureArray(data.finalizados), grids.finalizados);
+      return;
+    }
+    // Cualquier otro caso
+    Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">No hay elementos.</div>`);
   }
 
   async function load(){
     Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">Cargando…</div>`);
     try{
-      const res = await fetch(CATALOG_URL, {cache:'no-store'});
-      if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-
-      // Distribución manual: 1 activo, 1 joint, 1 finalizado
-      const activos = [data[0]];       // Ririsa
-      const joints  = [data[1]];       // Las 100 Novias
-      const finalizados = [data[2]];   // Saneka
-
-      render(activos, grids.activos);
-      render(joints, grids.joints);
-      render(finalizados, grids.finalizados);
+      const data = await fetchWithFallback(CANDIDATES);
+      paint(data);
     }catch(e){
-      console.error('No se pudo cargar catalogo.json:', e);
+      console.error('No se pudo cargar el catálogo:', e);
       Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">Error cargando catálogo.</div>`);
     }
   }
 
-  // búsqueda (simple: título o tags)
+  // búsqueda (filtra tarjetas pintadas por texto)
   document.getElementById('q')?.addEventListener('input', (e)=>{
     const q = e.target.value.trim().toLowerCase();
-    // filtro en el DOM (simple) para no re-pedir el JSON
-    document.querySelectorAll('.card').forEach(a=>{
+    document.querySelectorAll('.grid .card').forEach(a=>{
       const text = a.textContent.toLowerCase();
       a.style.display = text.includes(q) ? '' : 'none';
     });
