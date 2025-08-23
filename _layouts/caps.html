@@ -1,19 +1,115 @@
 ---
 layout: default
+title: Caps
 use_theme: true
 ---
 
-<body class="has-nav-bottom{% if page.use_main_css %} theme{% endif %}">
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="{{ '/' | relative_url }}">SCAN</a>
+    <div class="search"><input id="q" type="search" placeholder="Buscar capítulos…"></div>
+    <a class="chip" href="{{ '/' | relative_url }}">Volver al inicio</a>
+  </div>
+</header>
 
-  <!-- Header fijo SCAN -->
-  <header class="site-header">
-    <div class="bar">
-      <div class="brand">SCAN</div>
-      <div class="search"><input id="q" type="search" placeholder="Buscar…"></div>
-      <a class="chip" href="{{ '/' | relative_url }}">Volver al inicio</a>
-    </div>
-  </header>
+<main class="container" id="caps-root">
+  {{ content }}
+</main>
 
-  <!-- aquí sigue todo el código del reader original -->
-  <div id="main" role="main" class="container">
-    …
+<style>
+/* Botón flotante sobre la portada (solo en este layout) */
+.ui-theme .back-overlay-wrap{ position:relative; }
+.ui-theme .back-overlay{
+  position:absolute; top:12px; right:12px;
+  padding:8px 12px; border-radius:999px; text-decoration:none;
+  background:rgba(192,38,211,.15); border:1px solid rgba(192,38,211,.35);
+  color:#e7d7f2; font-size:14px; backdrop-filter: blur(4px);
+}
+.ui-theme .back-overlay:hover{ background:rgba(192,38,211,.25); }
+</style>
+
+<script>
+(() => {
+  const BASE = "{{ '/' | relative_url }}";
+
+  // 1) Poner botón "Volver al inicio" sobre la portada (primera imagen relevante)
+  function attachOverlayOnCover(){
+    // Busca una "portada" probable
+    const root = document.getElementById('caps-root');
+    if(!root) return;
+    // Preferencias de selectores comunes de portada
+    const candidates = root.querySelectorAll(
+      ".cover img, .portada img, .hero img, .banner img, article img, main img, .post img, img"
+    );
+    const img = Array.from(candidates).find(el => el.width > 300 || el.height > 300) || candidates[0];
+    if(!img) return;
+
+    // Envuelve la imagen para poder posicionar el botón
+    const wrap = document.createElement('div');
+    wrap.className = 'back-overlay-wrap';
+    img.parentNode.insertBefore(wrap, img);
+    wrap.appendChild(img);
+
+    const a = document.createElement('a');
+    a.className = 'back-overlay';
+    a.href = BASE;
+    a.textContent = 'Volver al inicio';
+    wrap.appendChild(a);
+  }
+
+  // 2) Búsqueda de capítulos
+  // Detecta enlaces a capítulos con varios patrones y oculta/mostrar contenedores
+  let chapterLinks = [];
+  function collectChapterLinks(){
+    const root = document.getElementById('caps-root');
+    if(!root) return;
+
+    // Selecciones comunes: listas de capítulos, cards, enlaces con 'cap' o 'chapter'
+    const selectors = [
+      '.chapters a', '.chapter-list a', '.list a', '.items a', '.cards a',
+      "a[href*='cap']", "a[href*='chapter']", "a[data-chapter]"
+    ];
+    const nodes = selectors.flatMap(sel => Array.from(root.querySelectorAll(sel)));
+    // Quita duplicados
+    const seen = new Set();
+    chapterLinks = nodes.filter(a => {
+      const key = a.href + '|' + a.textContent.trim();
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function setVisible(el, show){
+    // Oculta el contenedor más lógico del enlace (li, card, fila, etc.)
+    const container = el.closest('li, .item, .card, .entry, .row, .chapter, .capitulo, .list-group-item, div') || el;
+    container.style.display = show ? '' : 'none';
+  }
+
+  function wireSearch(){
+    const input = document.getElementById('q');
+    if(!input) return;
+    input.addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      if(!q){
+        chapterLinks.forEach(a => setVisible(a, true));
+        return;
+      }
+      chapterLinks.forEach(a => {
+        const text = (a.textContent || '').toLowerCase();
+        const href = (a.getAttribute('href') || '').toLowerCase();
+        // Coincidencia por texto visible o por slug del enlace
+        const hit = text.includes(q) || href.includes(q);
+        setVisible(a, hit);
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    attachOverlayOnCover();
+    collectChapterLinks();
+    wireSearch();
+  });
+
+})();
+</script>
