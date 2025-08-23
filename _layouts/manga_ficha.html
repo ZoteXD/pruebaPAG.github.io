@@ -1,5 +1,6 @@
 <div class="manga-meta">
   {% if page.title %}<h1 class="manga-title">{{ page.title }}</h1>{% endif %}
+
   <ul class="manga-meta-list">
     {% if page.autor %}<li><strong>Autor:</strong> {{ page.autor }}</li>{% endif %}
     {% if page.artista %}<li><strong>Arte:</strong> {{ page.artista }}</li>{% endif %}
@@ -8,10 +9,12 @@
     {% if page.estado %}<li><strong>Estado:</strong> {{ page.estado }}</li>{% endif %}
     {% if page.anio %}<li><strong>Año:</strong> {{ page.anio }}</li>{% endif %}
   </ul>
+
   {% if page.sinopsis %}
     <h3>Sinopsis</h3>
     <p class="manga-sinopsis">{{ page.sinopsis }}</p>
   {% endif %}
+
   {% if page.links_descarga %}
     <h3>Descargas</h3>
     <ul class="manga-dl">
