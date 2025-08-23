@@ -15,7 +15,7 @@
     <p class="manga-sinopsis">{{ page.sinopsis }}</p>
   {% endif %}
 
-  {% if page.links_descarga %}
+  {% if page.links_descarga and page.show_links_en_ficha != false %}
     <h3>Descargas</h3>
     <ul class="manga-dl">
       {% for l in page.links_descarga %}
@@ -23,4 +23,5 @@
       {% endfor %}
     </ul>
   {% endif %}
+
 </div>

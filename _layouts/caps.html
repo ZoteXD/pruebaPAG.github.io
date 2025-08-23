@@ -33,6 +33,17 @@ layout: default
   <article class="reader-content">
     {{ content }}
   </article>
+  {% comment %} --- BLOQUE INFERIOR: Links de descarga --- {% endcomment %}
+  {% if page.links_descarga %}
+  <section id="links-de-descarga" class="ui-block">
+    <h3>Links de descarga</h3>
+    <ul class="manga-dl">
+      {% for l in page.links_descarga %}
+        <li><a href="{{ l.url }}">{{ l.nombre }}</a></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
 </main>
 
 <!-- Config segura para JS (no visible en la página) -->
