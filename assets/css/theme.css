@@ -63,3 +63,55 @@
 .ui-theme .page-card{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:var(--ring); }
 .ui-theme .page-card h2{ margin-top:0; }
 .ui-theme .page-card a{ color:#eab8f3; }
+
+.ui-theme .ui-block { margin: 1.5rem 0; }
+
+.ui-theme .header-row {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 0;
+}
+
+.ui-theme .brand-scan {
+  font-weight: 700; text-decoration: none;
+  display:inline-block; padding:.4rem .8rem; border-radius:.75rem;
+  border:1px solid rgba(175, 82, 222, .35);
+}
+
+.ui-theme .search-form { display:flex; gap:.5rem; justify-content:center; }
+.ui-theme .search-form input { padding:.5rem .75rem; border-radius:.5rem; border:1px solid rgba(255,255,255,.1); }
+
+.ui-theme .btn-back {
+  display:inline-block; padding:.55rem .9rem; border-radius:999px; text-decoration:none;
+  border:1px solid rgba(175, 82, 222, .35);
+}
+
+.ui-theme .manga-hero {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.ui-theme .manga-cover img {
+  width: 100%; height: auto;
+  border-radius: .75rem; box-shadow: 0 6px 24px rgba(0,0,0,.35);
+  display:block;
+}
+
+.ui-theme .manga-title { margin: 0 0 .5rem; line-height: 1.2; }
+.ui-theme .manga-meta { max-width: 70ch; }
+.ui-theme .manga-meta-list { list-style:none; padding:0; margin:0 0 1rem; }
+.ui-theme .manga-meta-list li { margin:.25rem 0; opacity:.9; }
+.ui-theme .manga-sinopsis { text-align: justify; }
+
+.ui-theme .manga-dl { padding-left: 1.1rem; }
+.ui-theme .manga-dl li { margin:.25rem 0; }
+
+@media (max-width: 900px){
+  .ui-theme .header-row { grid-template-columns: 1fr; gap:.75rem; }
+  .ui-theme .manga-hero { grid-template-columns: 1fr; }
+  .ui-theme .manga-meta { max-width: none; }
+}

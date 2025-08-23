@@ -1,115 +1,123 @@
 ---
 layout: default
-title: Caps
-use_theme: true
 ---
 
+<!-- Header SCAN -->
 <header class="site-header">
-  <div class="bar">
-    <a class="brand" href="{{ '/' | relative_url }}">SCAN</a>
-    <div class="search"><input id="q" type="search" placeholder="Buscar capítulos…"></div>
-    <a class="chip" href="#">Descarga la app</a>
+  <div class="container header-row">
+    <a class="brand-scan" href="{{ site.baseurl }}/">SCAN</a>
+
+    <form class="search-form" onsubmit="event.preventDefault(); buscarCapitulo();">
+      <input id="qcap" type="search" placeholder="Buscar capítulos…">
+      <button>Buscar</button>
+    </form>
+
+    <a class="btn-back" href="{{ site.baseurl }}/">Volver al inicio</a>
   </div>
 </header>
 
-<main class="container" id="caps-root">
-  {{ content }}
+<main class="container">
+  <!-- Portada + Ficha -->
+  <div class="manga-hero ui-block">
+    <div class="manga-cover">
+      <img src="{{ page.portada | default: '/assets/img/placeholder-cover.png' }}"
+           alt="Portada de {{ page.title }}">
+      <a class="btn-back" href="{{ site.baseurl }}/">Volver al inicio</a>
+    </div>
+
+    {% include manga_ficha.html %}
+  </div>
+
+  <!-- 👇 CLAVE: contenido del post/página -->
+  <article class="reader-content">
+    {{ content }}
+  </article>
 </main>
 
-<style>
-/* Botón flotante sobre la portada (solo en este layout) */
-.ui-theme .back-overlay-wrap{ position:relative; }
-.ui-theme .back-overlay{
-  position:absolute; top:12px; right:12px;
-  padding:8px 12px; border-radius:999px; text-decoration:none;
-  background:rgba(192,38,211,.15); border:1px solid rgba(192,38,211,.35);
-  color:#e7d7f2; font-size:14px; backdrop-filter: blur(4px);
-}
-.ui-theme .back-overlay:hover{ background:rgba(192,38,211,.25); }
-</style>
+<!-- Datos seguros para JS (evita Liquid complejo dentro de <script>) -->
+<div id="page-data"
+     data-baseurl="{{ site.baseurl | escape }}"
+     data-series="{{ page.series | default: '' | escape }}"
+     data-page='{{ page | jsonify | replace: "</", "<\\/" }}'
+     hidden></div>
 
 <script>
-(() => {
-  const BASE = "{{ '/' | relative_url }}";
+  // ====== Vars desde HTML → JS (robusto para GitHub Pages) ======
+  const __el    = document.getElementById('page-data');
+  const BASEURL = __el?.dataset.baseurl || '';
+  const SERIES  = __el?.dataset.series  || '';
+  const PAGE    = (()=>{ try { return JSON.parse(__el?.dataset.page || '{}'); } catch { return {}; } })();
 
-  // 1) Poner botón "Volver al inicio" sobre la portada (primera imagen relevante)
-  function attachOverlayOnCover(){
-    // Busca una "portada" probable
-    const root = document.getElementById('caps-root');
-    if(!root) return;
-    // Preferencias de selectores comunes de portada
-    const candidates = root.querySelectorAll(
-      ".cover img, .portada img, .hero img, .banner img, article img, main img, .post img, img"
-    );
-    const img = Array.from(candidates).find(el => el.width > 300 || el.height > 300) || candidates[0];
-    if(!img) return;
-
-    // Envuelve la imagen para poder posicionar el botón
-    const wrap = document.createElement('div');
-    wrap.className = 'back-overlay-wrap';
-    img.parentNode.insertBefore(wrap, img);
-    wrap.appendChild(img);
-
-    const a = document.createElement('a');
-    a.className = 'back-overlay';
-    a.href = BASE;
-    a.textContent = 'Volver al inicio';
-    wrap.appendChild(a);
-  }
-
-  // 2) Búsqueda de capítulos
-  // Detecta enlaces a capítulos con varios patrones y oculta/mostrar contenedores
-  let chapterLinks = [];
-  function collectChapterLinks(){
-    const root = document.getElementById('caps-root');
-    if(!root) return;
-
-    // Selecciones comunes: listas de capítulos, cards, enlaces con 'cap' o 'chapter'
-    const selectors = [
-      '.chapters a', '.chapter-list a', '.list a', '.items a', '.cards a',
-      "a[href*='cap']", "a[href*='chapter']", "a[data-chapter]"
-    ];
-    const nodes = selectors.flatMap(sel => Array.from(root.querySelectorAll(sel)));
-    // Quita duplicados
-    const seen = new Set();
-    chapterLinks = nodes.filter(a => {
-      const key = a.href + '|' + a.textContent.trim();
-      if(seen.has(key)) return false;
-      seen.add(key);
-      return true;
+  // ====== Buscador simple en la página ======
+  function buscarCapitulo(){
+    const v = (document.getElementById('qcap')?.value || '').toLowerCase();
+    if(!v) return;
+    const els = [...document.querySelectorAll('a, li, h2, h3, p')];
+    let first = null;
+    els.forEach(el=>{
+      const hit = el.textContent.toLowerCase().includes(v);
+      if(hit && !first) first = el;
+      el.style.outline = hit ? '2px solid rgba(180,120,255,.5)' : '';
     });
+    if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
   }
 
-  function setVisible(el, show){
-    // Oculta el contenedor más lógico del enlace (li, card, fila, etc.)
-    const container = el.closest('li, .item, .card, .entry, .row, .chapter, .capitulo, .list-group-item, div') || el;
-    container.style.display = show ? '' : 'none';
-  }
+  // ====== Autocompletar ficha desde catalogo.json (opcional) ======
+  (async function hydrateFromCatalog(){
+    // Solo hidratar si faltan campos comunes y hay series
+    const needs = !('sinopsis' in PAGE) || !('autor' in PAGE) || !('generos' in PAGE);
+    if(!needs || !SERIES) return;
 
-  function wireSearch(){
-    const input = document.getElementById('q');
-    if(!input) return;
-    input.addEventListener('input', (e)=>{
-      const q = e.target.value.trim().toLowerCase();
-      if(!q){
-        chapterLinks.forEach(a => setVisible(a, true));
-        return;
+    const urls = [`${BASEURL}/assets/data/catalogo.json`, `${BASEURL}/catalogo.json`];
+    let catalog = null;
+    for (const u of urls) {
+      try {
+        const r = await fetch(u, {cache:'no-store'});
+        if(r.ok){ catalog = await r.json(); break; }
+      } catch(e){}
+    }
+    if(!catalog) return;
+
+    // Soporta JSON plano o por secciones/latest
+    let items = [];
+    if (Array.isArray(catalog)) items = catalog;
+    else if (catalog.sections && Array.isArray(catalog.sections)) {
+      items = catalog.sections.flatMap(s => s.items || []);
+    } else if (catalog.latest && Array.isArray(catalog.latest)) {
+      items = catalog.latest;
+    }
+
+    const found = items.find(x => (x.slug || x.series) === SERIES);
+    if(!found) return;
+
+    const metaList = document.querySelector('.manga-meta-list');
+    const metaBox  = document.querySelector('.manga-meta');
+    const coverImg = document.querySelector('.manga-cover img');
+
+    const addLine = (label, value)=>{
+      if(!metaList || value==null) return;
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>${label}:</strong> ${Array.isArray(value)?value.join(', '):value}`;
+      metaList.appendChild(li);
+    };
+
+    if(!PAGE.portada && found.portada && coverImg) coverImg.src = found.portada;
+
+    if(!PAGE.sinopsis && found.sinopsis){
+      let p = document.querySelector('.manga-sinopsis');
+      if(!p){
+        const h = document.createElement('h3'); h.textContent = 'Sinopsis';
+        p = document.createElement('p'); p.className = 'manga-sinopsis';
+        if(metaBox){ metaBox.appendChild(h); metaBox.appendChild(p); }
       }
-      chapterLinks.forEach(a => {
-        const text = (a.textContent || '').toLowerCase();
-        const href = (a.getAttribute('href') || '').toLowerCase();
-        // Coincidencia por texto visible o por slug del enlace
-        const hit = text.includes(q) || href.includes(q);
-        setVisible(a, hit);
-      });
-    });
-  }
+      if(p) p.textContent = found.sinopsis;
+    }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    attachOverlayOnCover();
-    collectChapterLinks();
-    wireSearch();
-  });
-
-})();
+    if(!PAGE.autor     && found.autor)     addLine('Autor',     found.autor);
+    if(!PAGE.artista   && found.artista)   addLine('Arte',      found.artista);
+    if(!PAGE.editorial && found.editorial) addLine('Editorial', found.editorial);
+    if(!PAGE.generos   && found.generos)   addLine('Géneros',   found.generos);
+    if(!PAGE.estado    && found.estado)    addLine('Estado',    found.estado);
+    if(!PAGE.anio      && found.anio)      addLine('Año',       found.anio);
+  })();
 </script>
