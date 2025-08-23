@@ -1,56 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ page.title | default: site.title | escape }}</title>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
 
-    {%- comment -%} CSS principal actual (solo si NO lo desactivas por página) {%- endcomment -%}
-    {% if page.use_main_css != false %}
-    <link rel="stylesheet" href="{{ '/assets/css/theme.css' | relative_url }}">
     {%- assign theme_on = page.use_theme | default: true -%}
-    {% endif %}
-
-    {%- comment -%} Tema oscuro nuevo (puedes quitarlo por página si pones use_theme:false) {%- endcomment -%}
-    {% if page.use_theme != false %}
     <link rel="stylesheet" href="{{ '/assets/css/theme.css' | relative_url }}">
-    {% endif %}
+
+    <title>{{ page.title | default: site.title }}</title>
   </head>
 
-  <body>
-    {% if theme_on %} class="ui-theme"{% endif %}
-    {%- comment -%} Header opcional del sitio {%- endcomment -%}
-    {%- if page.include_header != false -%}
-      {%- if site.header_include -%}
-        {% include {{ site.header_include }} %}
-      {%- else -%}
-        {% if site.header and site.header != '' %}
-          {% include {{ site.header }} %}
-        {% elsif site.includes and site.includes.header %}
-          {% include header.html %}
-        {% else %}
-          <!-- Sin header include; continúa -->
-        {% endif %}
-      {%- endif -%}
-    {%- endif -%}
-
-    <main id="main" role="main">
-      {{ content }}
-    </main>
-
-    {%- comment -%} Footer opcional {%- endcomment -%}
-    {%- if page.include_footer != false -%}
-      {% if site.footer and site.footer != '' %}
-        {% include {{ site.footer }} %}
-      {% else %}
-        <!-- Sin footer include -->
-      {% endif %}
-    {%- endif -%}
-
-    {%- if page.extra_js -%}
-      {%- for js in page.extra_js -%}
-        <script src="{{ site.baseurl }}{{ js }}"></script>
-      {%- endfor -%}
-    {%- endif -%}
+  <body{% if theme_on %} class="ui-theme"{% endif %}>
+    {{ content }}
   </body>
 </html>
