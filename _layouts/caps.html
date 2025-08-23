@@ -1,0 +1,19 @@
+---
+layout: default
+use_theme: true
+---
+
+<body class="has-nav-bottom{% if page.use_main_css %} theme{% endif %}">
+
+  <!-- Header fijo SCAN -->
+  <header class="site-header">
+    <div class="bar">
+      <div class="brand">SCAN</div>
+      <div class="search"><input id="q" type="search" placeholder="Buscar…"></div>
+      <a class="chip" href="{{ '/' | relative_url }}">Volver al inicio</a>
+    </div>
+  </header>
+
+  <!-- aquí sigue todo el código del reader original -->
+  <div id="main" role="main" class="container">
+    …
