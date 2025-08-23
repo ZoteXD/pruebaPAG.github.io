@@ -1,6 +1,8 @@
 ---
 # Layout LECTOR: página completa (clona la base de default.html)
+use_theme: false   # <- No añade la clase ui-theme al <body>
 ---
+
 
 <!DOCTYPE html>
 <html lang="es">
@@ -10,9 +12,7 @@
     <title>{{ page.title | escape }}</title>
 
     {% if page.use_main_css %}
-      <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css">
-    {% else %}
-      <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
+      <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/theme.css">
     {% endif %}
 
     <!-- Mejora conexión con Google Drive -->

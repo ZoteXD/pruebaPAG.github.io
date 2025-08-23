@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ page.title | default: site.title | escape }}</title>
 
-    {%- comment -%}
-      Si tu tema compila SCSS a /assets/css/main.css, este link sirve igual.
-      Si prefieres otra hoja, cambia la ruta aquí.
-    {%- endcomment -%}
-    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/main.css" />
+    {%- comment -%} CSS principal actual (solo si NO lo desactivas por página) {%- endcomment -%}
+    {% if page.use_main_css != false %}
+    <link rel="stylesheet" href="{{ '/assets/css/theme.css' | relative_url }}">
+    {%- assign theme_on = page.use_theme | default: true -%}
+    {% endif %}
 
-    {%- if page.extra_css -%}
-      {%- for css in page.extra_css -%}
-        <link rel="stylesheet" href="{{ site.baseurl }}{{ css }}">
-      {%- endfor -%}
-    {%- endif -%}
+    {%- comment -%} Tema oscuro nuevo (puedes quitarlo por página si pones use_theme:false) {%- endcomment -%}
+    {% if page.use_theme != false %}
+    <link rel="stylesheet" href="{{ '/assets/css/theme.css' | relative_url }}">
+    {% endif %}
   </head>
 
   <body>
+    {% if theme_on %} class="ui-theme"{% endif %}
     {%- comment -%} Header opcional del sitio {%- endcomment -%}
     {%- if page.include_header != false -%}
       {%- if site.header_include -%}
@@ -51,6 +51,7 @@
       {%- for js in page.extra_js -%}
         <script src="{{ site.baseurl }}{{ js }}"></script>
       {%- endfor -%}
+    {%- endif -%}
     {%- endif -%}
   </body>
 </html>

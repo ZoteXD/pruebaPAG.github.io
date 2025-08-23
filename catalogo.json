@@ -1,26 +1,32 @@
-[
-  {
-    "mangaId": "ririsa",
-    "title": "Ririsa",
-    "url": "/ririsa/",
-    "cover": "assets/img/ririsa-cover.jpg",
-    "tags": ["romance","comedia"],
-    "latest": "cap2"
-  },
-  {
-    "mangaId": "100novias",
-    "title": "Las 100 Novias",
-    "url": "/100-novias/",
-    "cover": "assets/img/100n-cover.jpg",
-    "tags": ["comedia","romance"],
-    "latest": "cap168"
-  },
-  {
-    "mangaId": "saneka",
-    "title": "My Marriage with Saneka",
-    "url": "/saneka/",
-    "cover": "assets/img/saneka-cover.jpg",
-    "tags": ["romance","comedia"],
-    "latest": "Capitulo 17"
-  }
-]
+{
+  "activos": [
+    {
+      "mangaId": "ririsa",
+      "title": "Ririsa",
+      "url": "/ririsa/",
+      "cover": "assets/img/ririsa-cover.jpg",
+      "tags": ["romance", "comedia"],
+      "latest": "cap2"
+    }
+  ],
+  "joints": [
+    {
+      "mangaId": "100novias",
+      "title": "Las 100 Novias",
+      "url": "/100-novias/",
+      "cover": "assets/img/100n-cover.jpg",
+      "tags": ["comedia", "romance"],
+      "latest": "cap168"
+    }
+  ],
+  "finalizados": [
+    {
+      "mangaId": "saneka",
+      "title": "My Marriage with Saneka",
+      "url": "/saneka/",
+      "cover": "assets/img/saneka-cover.jpg",
+      "tags": ["romance", "comedia"],
+      "latest": "Capitulo 17"
+    }
+  ]
+}
