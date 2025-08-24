@@ -1,22 +1,39 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    {%- assign theme_on = page.use_theme | default: true -%}
+    <title>{% if page.title %}{{ page.title | escape }} · {% endif %}{{ site.title | default: site.name }}</title>
+
+    {%- comment -%}
+      Carga de estilos del tema (incluye estilos de la barra SCAN)
+      Ajusta la ruta si usas otra ubicación/nombre.
+    {%- endcomment -%}
     <link rel="stylesheet" href="{{ '/assets/css/theme.css' | relative_url }}">
 
-    <title>{{ page.title | default: site.title }}</title>
+    {%- comment -%} Si usas más CSS/JS de tu tema, enlázalos aquí {%- endcomment -%}
+    {{ content_for_header }}
   </head>
-
   <body>
-  {% if page.header_kind == "home" %}
-    {% include header_home.html %}
-  {% elsif page.header_kind == "caps" %}
-    {% include header_caps.html %}
-  {% endif %}
-  {% if theme_on %} class="ui-theme"{% endif %}>
+
+    {%- comment -%}
+      Selector de header según la página:
+      - Home -> header_home.html
+      - Capítulos -> header_caps.html
+      (El reader NO incluye nada de esto porque ese layout no usa este conmutador.)
+    {%- endcomment -%}
+    {% if page.header_kind == "home" %}
+      {% include header_home.html %}
+    {% elsif page.header_kind == "caps" %}
+      {% include header_caps.html %}
+    {% endif %}
+
+    {%- comment -%}
+      Contenido de la página. En Home envolveremos TODO con <div class="ui-theme"> desde el propio home.html.
+      Así no forzamos el tema global en páginas que no lo necesitan (p.ej. reader).
+    {%- endcomment -%}
     {{ content }}
+
   </body>
 </html>
