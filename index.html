@@ -1,6 +1,51 @@
 ---
-layout: home
-title: Inicio
-use_theme: true
+layout: default
+title: Home
+header_kind: home
 ---
 
+<!-- Home completo dentro del scope del tema -->
+<div class="ui-theme">
+  <main class="container">
+
+    <div class="section-title">
+      <span class="bar"></span>
+      <h2>Nuestros proyectos activos</h2>
+    </div>
+
+    {%- comment -%}
+      Creamos tres listas filtrando por layout y las concatenamos.
+      Evita el error "Expected end_of_string but found id".
+    {%- endcomment -%}
+    {% assign posts_caps  = site.posts | where: "layout", "caps"  %}
+    {% assign posts_post  = site.posts | where: "layout", "post"  %}
+    {% assign posts_manga = site.posts | where: "layout", "manga" %}
+    {% assign posts_list  = posts_caps | concat: posts_post | concat: posts_manga %}
+
+    <!-- Grid de tarjetas -->
+    <div class="grid">
+      {% for post in posts_list %}
+        <a class="card"
+           href="{{ post.url | relative_url }}"
+           data-title="{{ post.title | escape }}"
+           data-tags="{{ post.tags | join: ' ' | escape }}">
+          <div class="card-cover">
+            <img
+              src="{{ post.cover | default: post.image | relative_url }}"
+              alt="{{ post.title | escape }}">
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">{{ post.title }}</h3>
+            <div class="chips">
+              {% for t in post.tags limit:6 %}
+                <span class="chip">{{ t }}</span>
+              {% endfor %}
+            </div>
+            <div class="meta">{{ post.date | date: "%Y-%m-%d" }}</div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+
+  </main>
+</div>

@@ -6,27 +6,19 @@
 
     <title>{% if page.title %}{{ page.title | escape }} · {% endif %}{{ site.title | default: site.name }}</title>
 
-    <!-- Carga el CSS del tema (ajusta la ruta si lo cambias de lugar) -->
+    <!-- Ajusta la ruta si moviste el CSS (por ejemplo a /assets/css/theme.css) -->
     <link rel="stylesheet" href="{{ '/theme.css' | relative_url }}">
-
-    {{ content_for_header }}
   </head>
   <body>
 
     {%- comment -%}
-      Selector de header:
-      - Home    -> header_home.html
-      - Capítulos -> header_caps.html
-      (El layout del reader NO usa este conmutador para no afectarlo)
+      Solo Home inserta su header desde aquí.
+      Capítulos lo insertan en su propio layout (caps.html) para evitar duplicados.
     {%- endcomment -%}
     {% if page.header_kind == "home" %}
       {% include header_home.html %}
-    {% elsif page.header_kind == "caps" %}
-      {% include header_caps.html %}
     {% endif %}
 
-    <!-- El contenido concreto de cada página -->
     {{ content }}
-
   </body>
 </html>

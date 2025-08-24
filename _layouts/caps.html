@@ -1,125 +1,57 @@
 ---
 layout: default
 ---
+
+{%- comment -%} Header solo para páginas de capítulos {%- endcomment -%}
 {% include header_caps.html %}
 
-<main class="container">
-  <!-- Portada + Ficha -->
-  <div class="manga-hero ui-block">
-    <div class="manga-cover">
-      <img src="{{ page.portada | default: '/assets/img/placeholder-cover.png' | relative_url }}"
-            alt="Portada de {{ page.title }}"
-            id="cover-img">
-      <a class="btn-back" href="{{ site.baseurl }}/">Volver al inicio</a>
+<!-- TODO Capítulos dentro de .ui-theme para que el tema aplique -->
+<div class="ui-theme">
+  <main class="container">
+
+    <!-- Portada + Ficha -->
+    <div class="manga-hero ui-block">
+      <div class="manga-cover">
+        <img
+          src="{{ page.portada | default: '/assets/img/placeholder-cover.png' | relative_url }}"
+          alt="Portada de {{ page.title }}"
+          id="cover-img">
+        <a class="btn-back" href="{{ site.baseurl }}/">Volver al inicio</a>
+      </div>
+
+      {% include manga_ficha.html %}
     </div>
 
-    {% include manga_ficha.html %}
-  </div>
+    <!-- Contenido del post -->
+    <article class="reader-content">
+      {{ content }}
+    </article>
 
-  <!-- 👇 Contenido del post/página -->
-  <article class="reader-content">
-    {{ content }}
-  </article>
-  {% comment %} --- BLOQUE INFERIOR: Links de descarga --- {% endcomment %}
-  {% if page.links_descarga %}
-  <section id="links-de-descarga" class="ui-block">
-    <h3>Links de descarga</h3>
-    <ul class="manga-dl">
-      {% for l in page.links_descarga %}
-        <li><a href="{{ l.url }}">{{ l.nombre }}</a></li>
-      {% endfor %}
-    </ul>
-  </section>
-  {% endif %}
-</main>
+    <!-- Ver capítulos aquí: etiqueta para el buscador -->
+    {% if page.capitulos %}
+    <section class="ui-block">
+      <h3>Ver capítulos aquí:</h3>
+      <ul id="chaptersList">
+        {% for cap in page.capitulos %}
+          <li data-cap="{{ cap.numero }}">
+            <a href="{{ cap.url | relative_url }}">{{ cap.titulo | default: 'Capítulo ' | append: cap.numero }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
 
-<!-- Config segura para JS (no visible en la página) -->
-<script type="application/json" id="page-config">
-{
-  "baseurl": {{ site.baseurl | jsonify }},
-  "series":  {{ page.series | default: "" | jsonify }},
-  "page":    {{ page | jsonify | replace: "</", "<\\/" }}
-}
-</script>
+    <!-- Links de descarga: etiqueta para el buscador -->
+    {% if page.links_descarga %}
+    <section id="links-de-descarga" class="ui-block">
+      <h3>Links de descarga</h3>
+      <ul id="downloadsList" class="manga-dl">
+        {% for l in page.links_descarga %}
+          <li data-cap="{{ l.cap }}"><a href="{{ l.url }}">{{ l.nombre }}</a></li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
 
-<script>
-  // Carga de config desde <script type="application/json" id="page-config">
-  let BASEURL = '', SERIES = '', PAGE = {};
-  try {
-    const cfg = JSON.parse(document.getElementById('page-config').textContent);
-    BASEURL = cfg.baseurl || '';
-    SERIES  = cfg.series  || '';
-    PAGE    = cfg.page    || {};
-  } catch (e) { /* noop */ }
-
-  // ====== Buscador simple ======
-  function buscarCapitulo(){
-    const v = (document.getElementById('qcap')?.value || '').toLowerCase();
-    if(!v) return;
-    const els = [...document.querySelectorAll('a, li, h2, h3, p')];
-    let first = null;
-    els.forEach(el=>{
-      const hit = el.textContent.toLowerCase().includes(v);
-      if(hit && !first) first = el;
-      el.style.outline = hit ? '2px solid rgba(180,120,255,.5)' : '';
-    });
-    if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
-  }
-
-  // ====== Autocompletar ficha desde catalogo.json ======
-  (async function hydrateFromCatalog(){
-    const needs = !('sinopsis' in PAGE) || !('autor' in PAGE) || !('generos' in PAGE);
-    if(!needs || !SERIES) return;
-
-    const urls = [`${BASEURL}/assets/data/catalogo.json`, `${BASEURL}/catalogo.json`];
-    let catalog = null;
-    for (const u of urls) {
-      try {
-        const r = await fetch(u, {cache:'no-store'});
-        if(r.ok){ catalog = await r.json(); break; }
-      } catch(e){}
-    }
-    if(!catalog) return;
-
-    let items = [];
-    if (Array.isArray(catalog)) items = catalog;
-    else if (catalog.sections && Array.isArray(catalog.sections)) {
-      items = catalog.sections.flatMap(s => s.items || []);
-    } else if (catalog.latest && Array.isArray(catalog.latest)) {
-      items = catalog.latest;
-    }
-
-    const found = items.find(x => (x.slug || x.series) === SERIES);
-    if(!found) return;
-
-    const metaList = document.querySelector('.manga-meta-list');
-    const metaBox  = document.querySelector('.manga-meta');
-    const coverImg = document.querySelector('.manga-cover img');
-
-    const addLine = (label, value)=>{
-      if(!metaList || value==null) return;
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${label}:</strong> ${Array.isArray(value)?value.join(', '):value}`;
-      metaList.appendChild(li);
-    };
-
-    if(!PAGE.portada && found.portada && coverImg) coverImg.src = found.portada;
-
-    if(!PAGE.sinopsis && found.sinopsis){
-      let p = document.querySelector('.manga-sinopsis');
-      if(!p){
-        const h = document.createElement('h3'); h.textContent = 'Sinopsis';
-        p = document.createElement('p'); p.className = 'manga-sinopsis';
-        if(metaBox){ metaBox.appendChild(h); metaBox.appendChild(p); }
-      }
-      if(p) p.textContent = found.sinopsis;
-    }
-
-    if(!PAGE.autor     && found.autor)     addLine('Autor',     found.autor);
-    if(!PAGE.artista   && found.artista)   addLine('Arte',      found.artista);
-    if(!PAGE.editorial && found.editorial) addLine('Editorial', found.editorial);
-    if(!PAGE.generos   && found.generos)   addLine('Géneros',   found.generos);
-    if(!PAGE.estado    && found.estado)    addLine('Estado',    found.estado);
-    if(!PAGE.anio      && found.anio)      addLine('Año',       found.anio);
-  })();
-</script>
+  </main>
+</div>
