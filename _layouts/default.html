@@ -6,19 +6,13 @@
 
     <title>{% if page.title %}{{ page.title | escape }} · {% endif %}{{ site.title | default: site.name }}</title>
 
-    <!-- Ajusta la ruta si moviste el CSS (por ejemplo a /assets/css/theme.css) -->
-    <link rel="stylesheet" href="{{ '/theme.css' | relative_url }}">
+    <!-- Usa la ubicación real del CSS -->
+    <link rel="stylesheet" href="{{ '/assets/css/theme.css' | relative_url }}">
   </head>
   <body>
-
-    {%- comment -%}
-      Solo Home inserta su header desde aquí.
-      Capítulos lo insertan en su propio layout (caps.html) para evitar duplicados.
-    {%- endcomment -%}
     {% if page.header_kind == "home" %}
       {% include header_home.html %}
     {% endif %}
-
     {{ content }}
   </body>
 </html>

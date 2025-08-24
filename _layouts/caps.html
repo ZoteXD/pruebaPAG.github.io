@@ -2,32 +2,26 @@
 layout: default
 ---
 
-{%- comment -%} Header solo para páginas de capítulos {%- endcomment -%}
 {% include header_caps.html %}
 
-<!-- TODO Capítulos dentro de .ui-theme para que el tema aplique -->
 <div class="ui-theme">
   <main class="container">
 
-    <!-- Portada + Ficha -->
     <div class="manga-hero ui-block">
       <div class="manga-cover">
         <img
           src="{{ page.portada | default: '/assets/img/placeholder-cover.png' | relative_url }}"
-          alt="Portada de {{ page.title }}"
-          id="cover-img">
+          alt="Portada de {{ page.title }}">
         <a class="btn-back" href="{{ site.baseurl }}/">Volver al inicio</a>
       </div>
 
       {% include manga_ficha.html %}
     </div>
 
-    <!-- Contenido del post -->
     <article class="reader-content">
       {{ content }}
     </article>
 
-    <!-- Ver capítulos aquí: etiqueta para el buscador -->
     {% if page.capitulos %}
     <section class="ui-block">
       <h3>Ver capítulos aquí:</h3>
@@ -41,7 +35,6 @@ layout: default
     </section>
     {% endif %}
 
-    <!-- Links de descarga: etiqueta para el buscador -->
     {% if page.links_descarga %}
     <section id="links-de-descarga" class="ui-block">
       <h3>Links de descarga</h3>

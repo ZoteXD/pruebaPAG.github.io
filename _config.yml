@@ -1,14 +1,65 @@
+# --- Identidad del sitio ---
+title: "pruebaPAG"
+description: "Pagina de pruebas"
+# URL pública del usuario y base del proyecto (¡importante para rutas!)
 url: "https://zotexd.github.io"
 baseurl: "/pruebaPAG.github.io"
 
-include:
-  - catalogo.json
+# --- Build / Markdown ---
+markdown: kramdown
+kramdown:
+  input: GFM
 
-defaults:
-  - scope: { path: "", type: posts }
-    values: { permalink: "/:title/" }
+# Páginas bonitas (/ruta/ en vez de .html)
+permalink: pretty
 
+# Tema que está usando tu Actions (según tu log)
+theme: jekyll-theme-primer
+
+# Plugins soportados por GitHub Pages (opcional)
+plugins:
+  - jekyll-seo-tag
+  - jekyll-feed
+  - jekyll-sitemap
+
+# --- Collections para tus carpetas de series ---
 collections:
-  "100novias": { output: true, permalink: /100novias/:name/ }
-  saneka:      { output: true, permalink: /saneka/:name/ }
-  ririsa:      { output: true, permalink: /ririsa/:name/ }
+  saneka:
+    output: true
+    permalink: /saneka/:name/
+  ririsa:
+    output: true
+    permalink: /ririsa/:name/
+  "100novias":            # clave entre comillas por empezar con número
+    output: true
+    permalink: /100novias/:name/
+
+# --- Defaults: aplica layout caps automáticamente dentro de cada colección ---
+defaults:
+  - scope:
+      path: "_saneka"
+      type: saneka
+    values:
+      layout: caps
+  - scope:
+      path: "_ririsa"
+      type: ririsa
+    values:
+      layout: caps
+  - scope:
+      path: "_100novias"
+      type: "100novias"
+    values:
+      layout: caps
+
+# --- Archivos/carpetas a excluir del build (amplía si te hace falta) ---
+exclude:
+  - node_modules
+  - vendor
+  - README.md
+  - checklist.txt
+  - guia_rapida.txt
+
+# --- Incluir explícitamente assets si lo necesitas (normalmente no hace falta) ---
+include:
+  - assets
