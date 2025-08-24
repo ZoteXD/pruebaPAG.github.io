@@ -10,7 +10,13 @@
     <title>{{ page.title | default: site.title }}</title>
   </head>
 
-  <body{% if theme_on %} class="ui-theme"{% endif %}>
+  <body>
+  {% if page.header_kind == "home" %}
+    {% include header_home.html %}
+  {% elsif page.header_kind == "caps" %}
+    {% include header_caps.html %}
+  {% endif %}
+  {% if theme_on %} class="ui-theme"{% endif %}>
     {{ content }}
   </body>
 </html>
