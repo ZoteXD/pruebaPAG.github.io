@@ -1,3 +1,17 @@
+/* Reset básico y fondo global */
+html, body {
+  height: 100%;
+  margin: 0;           /* <-- quita el “marco blanco” */
+  padding: 0;
+  background: #0e1220; /* mismo tono oscuro del tema */
+}
+
+/* Por si algún contenedor traía fondo claro */
+.ui-theme, .ui-theme .container {
+  background: transparent;
+}
+
+
 /* ===== Variables: se definen dentro de .ui-theme para que NO “sangren” al reader ===== */
 .ui-theme{
   --bg: #0b0f14;
