@@ -34,7 +34,7 @@ html, body {
 .ui-theme *{ box-sizing:border-box; }
 
 /* Contenedor */
-.ui-theme .container{ max-width:1200px; margin-inline:auto; padding:24px 20px; }
+.ui-theme .container{ max-width:800px; margin-inline:auto; padding:24px 20px; }
 
 /* Header */
 .ui-theme .site-header{ position:sticky; top:0; z-index:30; background:linear-gradient(180deg, rgba(11,15,20,.95), rgba(11,15,20,.65)); backdrop-filter: blur(8px); border-bottom:1px solid var(--line); }
