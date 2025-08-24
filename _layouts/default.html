@@ -6,22 +6,18 @@
 
     <title>{% if page.title %}{{ page.title | escape }} · {% endif %}{{ site.title | default: site.name }}</title>
 
-    {%- comment -%}
-      Carga de estilos del tema (incluye estilos de la barra SCAN)
-      Ajusta la ruta si usas otra ubicación/nombre.
-    {%- endcomment -%}
-    <link rel="stylesheet" href="{{ '/assets/css/theme.css' | relative_url }}">
+    <!-- Carga el CSS del tema (ajusta la ruta si lo cambias de lugar) -->
+    <link rel="stylesheet" href="{{ '/theme.css' | relative_url }}">
 
-    {%- comment -%} Si usas más CSS/JS de tu tema, enlázalos aquí {%- endcomment -%}
     {{ content_for_header }}
   </head>
   <body>
 
     {%- comment -%}
-      Selector de header según la página:
-      - Home -> header_home.html
+      Selector de header:
+      - Home    -> header_home.html
       - Capítulos -> header_caps.html
-      (El reader NO incluye nada de esto porque ese layout no usa este conmutador.)
+      (El layout del reader NO usa este conmutador para no afectarlo)
     {%- endcomment -%}
     {% if page.header_kind == "home" %}
       {% include header_home.html %}
@@ -29,10 +25,7 @@
       {% include header_caps.html %}
     {% endif %}
 
-    {%- comment -%}
-      Contenido de la página. En Home envolveremos TODO con <div class="ui-theme"> desde el propio home.html.
-      Así no forzamos el tema global en páginas que no lo necesitan (p.ej. reader).
-    {%- endcomment -%}
+    <!-- El contenido concreto de cada página -->
     {{ content }}
 
   </body>

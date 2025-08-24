@@ -4,141 +4,40 @@ title: Home
 header_kind: home
 ---
 
-<body class="{% if page.show_topbar %}scan-has-topbar{% endif %}">
-  {% if page.show_topbar %}
-    {% include header_scan.html %}
-  {% endif %}
-  </body>
+<!-- ENVOLTORIO DEL TEMA: TODO Home dentro de .ui-theme -->
+<div class="ui-theme">
 
-<main class="container">
-  <!-- Activos -->
-  <div class="section-title"><span class="bar"></span><h2>Nuestros proyectos activos</h2></div>
-  <div class="grid" id="grid-activos" aria-live="polite"></div>
+  <main class="container">
+    <!-- Título/hero de sección -->
+    <div class="section-title">
+      <span class="bar"></span>
+      <h2>Nuestros proyectos activos</h2>
+    </div>
 
-  <!-- Joints -->
-  <div class="section-title" style="margin-top:36px"><span class="bar"></span><h2>Joints</h2></div>
-  <div class="grid" id="grid-joints" aria-live="polite"></div>
+    <!-- GRID de tarjetas: añade data-title y data-tags para que el buscador del header filtre -->
+    <div class="grid">
+      {%- assign posts_list = site.posts | where_exp: "p", "p.layout == 'caps' or p.layout == 'post' or p.layout == 'manga'" -%}
+      {%- for post in posts_list -%}
+        <a class="card"
+           href="{{ post.url | relative_url }}"
+           data-title="{{ post.title | escape }}"
+           data-tags="{{ post.tags | join: ' ' | escape }}">
+          <div class="card-cover">
+            <img src="{{ post.cover | default: post.image | relative_url }}"
+                 alt="{{ post.title | escape }}">
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">{{ post.title }}</h3>
+            <div class="chips">
+              {%- for t in post.tags limit:6 -%}
+                <span class="chip">{{ t }}</span>
+              {%- endfor -%}
+            </div>
+            <div class="meta">{{ post.date | date: "%Y-%m-%d" }}</div>
+          </div>
+        </a>
+      {%- endfor -%}
+    </div>
 
-  <!-- Finalizados -->
-  <div class="section-title" style="margin-top:36px"><span class="bar"></span><h2>Proyectos finalizados</h2></div>
-  <div class="grid" id="grid-finalizados" aria-live="polite"></div>
-</main>
-
-<script>
-(function(){
-  // BASE ya incluye el baseurl correcto, por ejemplo "/pruebaPAG.github.io/"
-  const BASE = "{{ '/' | relative_url }}";
-
-  // Intentaremos estas rutas en orden (todas con baseurl aplicado):
-  const CANDIDATES = [
-    "{{ '/assets/data/catalogo.json' | relative_url }}",
-    "{{ '/catalogo.json' | relative_url }}"
-  ].map(u => u + "?v={{ site.github.build_revision }}");
-
-  const $ = sel => document.querySelector(sel);
-  const grids = {
-    activos: $('#grid-activos'),
-    joints: $('#grid-joints'),
-    finalizados: $('#grid-finalizados')
-  };
-  const ensureArray = v => Array.isArray(v) ? v : [];
-
-  function withBase(url){
-    // quita "/" inicial y antepone BASE
-    return BASE + String(url || '#').replace(/^\//,'');
-  }
-  function imgWithBase(src){
-    if(!src) return 'https://via.placeholder.com/480x640?text=Cover';
-    return /^(https?:)?\/\//i.test(src) ? src : withBase(src);
-  }
-
-  function cardHTML(item){
-  if(!item) return '';
-  const title  = item.title || 'Sin título';
-  const href   = withBase(item.url ?? item.permalink ?? item.href ?? '#');
-  const cover  = imgWithBase(item.portada ?? item.cover); // <-- soporta 'portada'
-  const tags   = ensureArray(item.tags ?? item.generos ?? item.genres); // opcional
-  const latest = item.latest ?? item.last_label ?? '';
-  const chips  = tags.map(t => `<span class="chip">${t}</span>`).join('');
-  return `
-    <a class="card" href="${href}">
-      <div class="card-cover"><img src="${cover}" alt="${title}" loading="lazy"></div>
-      <div class="card-body">
-        <h3 class="card-title">${title}</h3>
-        <div class="chips">${chips}</div>
-        <div class="meta">${latest}</div>
-      </div>
-    </a>`;
-}
-
-
-  function render(list, el){
-    if (!Array.isArray(list) || list.length === 0) {
-      el.innerHTML = `<div class="meta">No hay elementos.</div>`;
-      return;
-    }
-    el.innerHTML = list.map(cardHTML).join('');
-  }
-
-  async function fetchWithFallback(urls){
-    let lastErr;
-    for (const u of urls){
-      try{
-        const res = await fetch(u, {cache:'no-store'});
-        if(!res.ok) throw new Error(`HTTP ${res.status} @ ${u}`);
-        const json = await res.json();
-        console.info("Catálogo cargado:", u);
-        return json;
-      }catch(e){
-        console.warn("Fallo cargando catálogo:", e);
-        lastErr = e;
-      }
-    }
-    throw lastErr || new Error("No se pudo cargar el catálogo");
-  }
-
-  function paint(data){
-    // Formatos soportados:
-    // 1) Objeto por secciones: {activos:[], joints:[], finalizados:[]}
-    // 2) Lista plana: [ {...}, {...}, {...} ]  (usaremos los 3 primeros)
-    if (Array.isArray(data)) {
-      const A = data[0] ? [data[0]] : [];
-      const J = data[1] ? [data[1]] : [];
-      const F = data[2] ? [data[2]] : [];
-      render(A, grids.activos);
-      render(J, grids.joints);
-      render(F, grids.finalizados);
-      return;
-    }
-    if (data && typeof data === 'object') {
-      render(ensureArray(data.activos), grids.activos);
-      render(ensureArray(data.joints), grids.joints);
-      render(ensureArray(data.finalizados), grids.finalizados);
-      return;
-    }
-    // Cualquier otro caso
-    Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">No hay elementos.</div>`);
-  }
-
-  async function load(){
-    Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">Cargando…</div>`);
-    try{
-      const data = await fetchWithFallback(CANDIDATES);
-      paint(data);
-    }catch(e){
-      console.error('No se pudo cargar el catálogo:', e);
-      Object.values(grids).forEach(g => g.innerHTML = `<div class="meta">Error cargando catálogo.</div>`);
-    }
-  }
-
-  // búsqueda (filtra tarjetas pintadas por texto)
-document.getElementById('scan-search-input')?.addEventListener('input', (e)=>{
-  const q = e.target.value.trim().toLowerCase();
-  document.querySelectorAll('.grid .card').forEach(a=>{
-    const text = a.textContent.toLowerCase();
-    a.style.display = text.includes(q) ? '' : 'none';
-    });
-  });
-  load();
-})();
-</script>
+  </main>
+</div>
