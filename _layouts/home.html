@@ -2,7 +2,11 @@
 layout: default
 ---
 
-{% include header_scan.html %}
+<body class="{% if page.show_topbar %}scan-has-topbar{% endif %}">
+  {% if page.show_topbar %}
+    {% include header_scan.html %}
+  {% endif %}
+  </body>
 
 <main class="container">
   <!-- Activos -->
